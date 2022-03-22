@@ -1,8 +1,8 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from models import Article
-from database import (
+from .models import Article
+from .database import (
     fetch_articles,
     fetch_article,
     create_article,
@@ -34,8 +34,8 @@ async def get_articles():
     return response
 
 
-@app.get("/articles/{article_id}")
-async def get_article(article_id: int, response_model=Article):
+@app.get("/articles/{article_id}", response_model=Article)
+async def get_article(article_id: int):
     response = await fetch_article(article_id)
     if response:
         return response
@@ -43,8 +43,8 @@ async def get_article(article_id: int, response_model=Article):
         raise HTTPException(status_code=404, detail="Article not found")
 
 
-@app.post("/articles")
-async def post_article(article: Article, response_model=Article):
+@app.post("/articles", response_model=Article)
+async def post_article(article: Article):
     response = await create_article(article.dict())
     if response:
         return response
