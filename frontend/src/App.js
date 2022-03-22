@@ -1,7 +1,9 @@
-function App() {
+import {Articles} from "./components/Articles";
+
+export default function App() {
     return (
-        <h1>Hi Mom!</h1>
+        <div className="App">
+            <Articles/>
+        </div>
     );
 }
-
-export default App;
