@@ -1,6 +1,8 @@
 from bs4 import BeautifulSoup
 import requests
-from backend.src.database import save_articles
+from pydantic import ValidationError
+from tqdm import tqdm
+from backend.src.database import save_articles, article_exists
 from backend.src.models import Article
 from abc import ABC, abstractmethod
 from datetime import datetime
@@ -97,6 +99,18 @@ class Newspaper(ABC):
         """
         raise NotImplementedError
 
+    @staticmethod
+    def article_exists(url) -> bool:
+        """Checks if an article exists in the database.
+
+        Args:
+            url: Article url.
+
+        Returns: True if article exists, False otherwise.
+
+        """
+        return article_exists(url)
+
     def scrape(self) -> list:
         """Scrapes articles form the newspaper.
 
@@ -105,7 +119,7 @@ class Newspaper(ABC):
         """
         urls = self._get_urls()
         articles = []
-        for url in urls:
+        for url in tqdm(urls):
             source = self.name
             soup = self.soup(url)
             title = self._get_title(soup)
@@ -114,16 +128,19 @@ class Newspaper(ABC):
             image_urls = self._get_image_urls(soup)
             authors = self._get_authors(soup)
 
-            article = Article(source=source,
-                              url=url,
-                              title=title,
-                              content=content,
-                              publish_date=publish_date,
-                              polarity=None,
-                              image_urls=image_urls,
-                              authors=authors)
+            try:
+                article = Article(source=source,
+                                  url=url,
+                                  title=title,
+                                  content=content,
+                                  publish_date=publish_date,
+                                  polarity=-1,
+                                  image_urls=image_urls,
+                                  authors=authors)
 
-            articles.append(article)
+                articles.append(article.dict())
+            except ValidationError:
+                pass
 
         return articles
 
@@ -135,4 +152,5 @@ class Newspaper(ABC):
             articles: List of articles.
 
         """
-        return save_articles(articles)
+        if articles:
+            return save_articles(articles)

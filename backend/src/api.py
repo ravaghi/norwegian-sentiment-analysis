@@ -26,14 +26,14 @@ def read_root():
 
 
 @app.get("/articles")
-async def get_articles() -> list:
-    response = await fetch_articles()
+def get_articles() -> list:
+    response = fetch_articles()
     return response
 
 
 @app.get("/articles/{article_id}", response_model=Article)
-async def get_article(title: str) -> Article:
-    response = await fetch_article(title)
+def get_article(title: str) -> Article:
+    response = fetch_article(title)
     if response:
         return response
     else:
