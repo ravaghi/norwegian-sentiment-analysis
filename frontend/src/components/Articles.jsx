@@ -5,7 +5,8 @@ import {
     Text,
     Button,
     useMantineTheme,
-    Container
+    Container,
+    Spoiler
 } from "@mantine/core";
 import axios from "axios";
 
@@ -34,7 +35,9 @@ export function Articles() {
                 <Text weight={500}>{article.title}</Text>
             </div>
             <Text size="sm" style={{color: secondaryColor, minHeight: 140}}>
-                {article.content}
+                <Spoiler maxHeight={120} showLabel="Show more" hideLabel="Hide">
+                    {article.content}
+                </Spoiler>
             </Text>
             <Button
                 size="sm"
