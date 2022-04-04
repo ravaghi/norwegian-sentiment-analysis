@@ -9,5 +9,5 @@ class Article(BaseModel):
     content: str
     publish_date: datetime
     polarity: int
-    image_urls: dict
+    image_urls: list
     authors: list
