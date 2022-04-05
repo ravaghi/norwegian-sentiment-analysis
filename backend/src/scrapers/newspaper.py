@@ -119,7 +119,7 @@ class Newspaper(ABC):
         """
         urls = self._get_urls()
         articles = []
-        for url in tqdm(urls):
+        for url in tqdm(urls, desc=f"Scraping {self.name}"):
             source = self.name
             soup = self.soup(url)
             title = self._get_title(soup)
