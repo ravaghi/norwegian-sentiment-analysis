@@ -34,10 +34,13 @@ class NRK(Newspaper):
     def _get_content(self, soup):
         try:
             content_div = soup.find("div", {"class": "article-body"})
-            content_paragraphs = content_div.find_all("p")
+            tags = content_div.findChildren(recursive=False)
             content = ""
-            for paragraph in content_paragraphs:
-                content = content + " " + paragraph.text.strip()
+            for tag in tags:
+                if tag.name in ["h1", "h2", "h3", "h4", "h5", "h6"]:
+                    content = content + f"\n[{tag.text.strip()}]\n"
+                if tag.name == "p":
+                    content = content + tag.text.strip() + "\n\n"
             return content
         except AttributeError:
             return None

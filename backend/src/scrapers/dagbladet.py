@@ -41,8 +41,15 @@ class Dagbladet(Newspaper):
 
     def _get_content(self, soup):
         try:
-            detail = self._get_article_detail(soup)
-            return detail["articleBody"]
+            content_div = soup.find("div", itemprop="articleBody")
+            tags = content_div.findChildren(recursive=False)
+            content = ""
+            for tag in tags:
+                if tag.name in ["h1", "h2", "h3", "h4", "h5", "h6"]:
+                    content = content + f"\n[{tag.text.strip()}]\n"
+                if tag.name == "p":
+                    content = content + tag.text.strip() + "\n\n"
+            return content
         except (TypeError, KeyError):
             return None
 

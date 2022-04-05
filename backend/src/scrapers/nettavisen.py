@@ -41,12 +41,16 @@ class Nettavisen(Newspaper):
 
     def _get_content(self, soup):
         try:
-            article_div = soup.find("article")
-            article_paragraphs = article_div.find_all("p")
+            content_div = soup.find("article")
+            tags = content_div.findChildren(recursive=False)
             content = ""
-            for paragraph in article_paragraphs:
-                content = content + " " + paragraph.text.strip()
+            for tag in tags:
+                if tag.name in ["h1", "h2", "h3", "h4", "h5", "h6"]:
+                    content = content + f"\n[{tag.text.strip()}]\n"
+                if tag.name == "p":
+                    content = content + tag.text.strip() + "\n\n"
             return content
+
         except AttributeError:
             return None
 
