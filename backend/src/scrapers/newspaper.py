@@ -128,6 +128,12 @@ class Newspaper(ABC):
             image_urls = self._get_image_urls(soup)
             authors = self._get_authors(soup)
 
+            if title:
+                title.strip()
+
+            if content:
+                content.strip()
+
             try:
                 article = Article(source=source,
                                   url=url,
