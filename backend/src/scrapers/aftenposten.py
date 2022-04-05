@@ -1,6 +1,7 @@
 from .newspaper import Newspaper
 from datetime import datetime
 import json
+import re
 
 
 class Aftenposten(Newspaper):
@@ -44,7 +45,7 @@ class Aftenposten(Newspaper):
 
     def _get_content(self, soup):
         try:
-            content_div = soup.find("div", id="main")
+            content_div = soup.find("div", {"class": re.compile("article-wrapper-.*")})
             tags = content_div.findChildren(recursive=False)
             content = ""
             for tag in tags:
@@ -52,7 +53,10 @@ class Aftenposten(Newspaper):
                     content = content + f"\n[{tag.text.strip()}]\n"
                 if tag.name == "p":
                     content = content + tag.text.strip() + "\n\n"
-            return content
+            if len(content) > 128:
+                return content
+            else:
+                return None
         except AttributeError:
             return None
 

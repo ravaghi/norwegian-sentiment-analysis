@@ -49,7 +49,10 @@ class Dagbladet(Newspaper):
                     content = content + f"\n[{tag.text.strip()}]\n"
                 if tag.name == "p":
                     content = content + tag.text.strip() + "\n\n"
-            return content
+            if len(content) > 128:
+                return content
+            else:
+                return None
         except (TypeError, KeyError, AttributeError):
             return None
 
