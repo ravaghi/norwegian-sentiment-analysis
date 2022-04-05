@@ -1,8 +1,8 @@
-from aftenposten import Aftenposten
-from nettavisen import Nettavisen
-from dagbladet import Dagbladet
-from nrk import NRK
-from vg import VG
+from scrapers.aftenposten import Aftenposten
+from scrapers.nettavisen import Nettavisen
+from scrapers.dagbladet import Dagbladet
+from scrapers.nrk import NRK
+from scrapers.vg import VG
 
 scrapers = [
     Aftenposten(),

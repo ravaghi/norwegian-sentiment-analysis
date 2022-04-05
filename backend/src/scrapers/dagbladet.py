@@ -1,6 +1,6 @@
 from json import JSONDecodeError
 
-from newspaper import Newspaper
+from .newspaper import Newspaper
 from datetime import datetime
 import json
 
@@ -50,7 +50,7 @@ class Dagbladet(Newspaper):
                 if tag.name == "p":
                     content = content + tag.text.strip() + "\n\n"
             return content
-        except (TypeError, KeyError):
+        except (TypeError, KeyError, AttributeError):
             return None
 
     def _get_publish_date(self, soup):

@@ -1,4 +1,4 @@
-from newspaper import Newspaper
+from .newspaper import Newspaper
 from datetime import datetime
 
 
