@@ -23,7 +23,7 @@ export function Articles() {
     }, []);
 
     const cards = articles.map((article) => (
-        <Card shadow="sm" key={article.title} style={{minWidth: 240}}>
+        <Card shadow="sm" key={article.url} style={{minWidth: 240}}>
             <div
                 style={{
                     display: "flex",
@@ -54,7 +54,7 @@ export function Articles() {
     return (
         <div style={{backgroundColor: theme.colors.gray[0]}}>
             <Container style={{paddingTop: 50, paddingBottom: 50}} size="md">
-                <SimpleGrid grow>
+                <SimpleGrid grow="true">
                     {cards}
                 </SimpleGrid>
             </Container>

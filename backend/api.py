@@ -1,8 +1,8 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from .models import Article
-from .database import (
+from src.data_collection.models import Article
+from src.data_collection.database import (
     fetch_articles,
     fetch_article
 )
@@ -22,7 +22,7 @@ app.add_middleware(
 
 @app.get("/")
 def read_root():
-    return {"Message": "Hi Mom!"}
+    return {"Message": "Hi, Mom!"}
 
 
 @app.get("/articles")
