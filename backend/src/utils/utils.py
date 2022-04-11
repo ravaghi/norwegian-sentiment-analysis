@@ -2,6 +2,7 @@ import pandas as pd
 import json
 import os
 import string
+import matplotlib.pyplot as plt
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -61,3 +62,23 @@ def clean_text(dataframe, column_name) -> pd.DataFrame:
     dataframe = remove_punctuation(dataframe, column_name)
     dataframe[column_name] = dataframe[column_name].str.strip()
     return dataframe
+
+
+def plot_history(history):
+    plt.style.use("ggplot")
+    plt.figure(figsize=(12, 6))
+    plt.subplot(1, 2, 1)
+    plt.plot(history.history["accuracy"], label="train")
+    plt.plot(history.history["val_accuracy"], label="validation")
+    plt.title("Accuracy")
+    plt.xlabel("Epoch")
+    plt.ylabel("Accuracy")
+    plt.legend()
+    plt.subplot(1, 2, 2)
+    plt.plot(history.history["loss"], label="train")
+    plt.plot(history.history["val_loss"], label="validation")
+    plt.title("Loss")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.legend()
+    plt.show()
