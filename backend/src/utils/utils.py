@@ -29,8 +29,8 @@ def remove_stopwords(dataframe, column_name, stopwords) -> pd.DataFrame:
     Returns: Cleaned dataframe.
 
     """
-    dataframe[column_name] = dataframe[column_name].apply(
-        lambda x: ' '.join([word for word in x.split() if word not in stopwords]))
+    dataframe[column_name] = dataframe[column_name].apply(lambda x: " ".join(
+        [word for word in x.split() if word not in stopwords]))
     return dataframe
 
 
@@ -47,6 +47,33 @@ def remove_punctuation(dataframe, column_name) -> pd.DataFrame:
     return dataframe
 
 
+def remove_tags(dataframe, column_name) -> pd.DataFrame:
+    """Remove tags from dataframe.
+        Args:
+            dataframe: Dataframe to clean.
+            column_name: Column name to clean.
+
+        Returns: Cleaned dataframe.
+
+        """
+    dataframe[column_name] = dataframe[column_name].str.replace(r'[«»]', '', regex=True)
+    return dataframe
+
+
+def convert_to_lowercase(dataframe, column_name) -> pd.DataFrame:
+    """Convert text to lowercase.
+
+    Args:
+        dataframe: Dataframe to clean.
+        column_name: Column name to clean.
+
+    Returns: Cleaned dataframe.
+
+    """
+    dataframe[column_name] = dataframe[column_name].apply(lambda x: x.lower())
+    return dataframe
+
+
 def clean_text(dataframe, column_name) -> pd.DataFrame:
     """ Clean text from dataframe.
 
@@ -58,9 +85,10 @@ def clean_text(dataframe, column_name) -> pd.DataFrame:
 
     """
     stopwords = load_stopwords()
-    dataframe = remove_stopwords(dataframe, column_name, stopwords)
+    dataframe = convert_to_lowercase(dataframe, column_name)
     dataframe = remove_punctuation(dataframe, column_name)
-    dataframe[column_name] = dataframe[column_name].str.strip()
+    dataframe = remove_tags(dataframe, column_name)
+    dataframe = remove_stopwords(dataframe, column_name, stopwords)
     return dataframe
 
 
