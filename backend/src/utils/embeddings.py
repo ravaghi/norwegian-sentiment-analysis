@@ -11,7 +11,7 @@ def load_embeddings() -> dict:
     Returns: Embeddings in a dictionary.
 
     """
-    with open("glove.4M.100d.txt", encoding="utf-8") as f:
+    with open(os.path.join(BASE_DIR, "glove.4M.100d.txt"), encoding="utf-8") as f:
         content = f.readlines()[1:]
 
     embeddings_index = dict()
