@@ -3,6 +3,11 @@ import pandas as pd
 
 
 def load_full_dataset() -> pd.DataFrame:
+    """Loads the full dataset.
+
+    Returns: A dataframe containing the multiclass dataset.
+
+    """
     data = []
     for name in ["train", "test", "dev"]:
         with open(f"3class/{name}.json", encoding="utf-8") as file:
@@ -15,6 +20,11 @@ def load_full_dataset() -> pd.DataFrame:
 
 
 def load_balanced_dataset() -> pd.DataFrame:
+    """Loads the balanced dataset.
+
+    Returns: A dataframe containing the multiclass dataset.
+
+    """
     data = load_full_dataset()
 
     postives_df = data[data["label"] == 2]
@@ -31,6 +41,11 @@ def load_balanced_dataset() -> pd.DataFrame:
 
 
 def load_binary_dataset() -> pd.DataFrame:
+    """Loads the binary dataset.
+
+    Returns: A dataframe containing the binary dataset.
+
+    """
     data = []
     for name in ["train", "test", "dev"]:
         with open(f"binary/{name}.json", encoding="utf-8") as file:
@@ -44,6 +59,11 @@ def load_binary_dataset() -> pd.DataFrame:
 
 
 def load_balanced_binary_dataset() -> pd.DataFrame:
+    """Loads the binary dataset.
+
+        Returns: A dataframe containing the balanced binary dataset.
+
+        """
     data = load_binary_dataset()
 
     postives_df = data[data["label"] == 1]
