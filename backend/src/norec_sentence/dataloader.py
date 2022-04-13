@@ -10,7 +10,7 @@ def load_full_dataset() -> pd.DataFrame:
     """
     data = []
     for name in ["train", "test", "dev"]:
-        with open(f"3class/{name}.json", encoding="utf-8") as file:
+        with open(f"multiclass/{name}.json", encoding="utf-8") as file:
             data = data + json.load(file)
     # Convert to pandas dataframe
     data = pd.DataFrame(data)
