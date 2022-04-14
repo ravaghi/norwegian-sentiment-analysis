@@ -1,7 +1,6 @@
 import pandas as pd
 import json
 import os
-import string
 import matplotlib.pyplot as plt
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -30,7 +29,7 @@ def remove_stopwords(dataframe, column_name, stopwords) -> pd.DataFrame:
 
     """
     dataframe[column_name] = dataframe[column_name].apply(lambda x: " ".join(
-        [word for word in x.split() if word not in stopwords]))
+        [word for word in x.split() if word not in stopwords and word != ""]))
     return dataframe
 
 
@@ -43,20 +42,7 @@ def remove_punctuation(dataframe, column_name) -> pd.DataFrame:
         Returns: Cleaned dataframe.
 
         """
-    dataframe[column_name] = dataframe[column_name].str.replace(r'[{}]'.format(string.punctuation), ' ', regex=True)
-    return dataframe
-
-
-def remove_tags(dataframe, column_name) -> pd.DataFrame:
-    """Remove tags from dataframe.
-        Args:
-            dataframe: Dataframe to clean.
-            column_name: Column name to clean.
-
-        Returns: Cleaned dataframe.
-
-        """
-    dataframe[column_name] = dataframe[column_name].str.replace(r'[«»]', '', regex=True)
+    dataframe[column_name] = dataframe[column_name].str.replace(r'[^\w\s]', '', regex=True)
     return dataframe
 
 
@@ -74,19 +60,6 @@ def convert_to_lowercase(dataframe, column_name) -> pd.DataFrame:
     return dataframe
 
 
-def remove_numbers(dataframe, column_name) -> pd.DataFrame:
-    """Remove numbers from dataframe.
-        Args:
-            dataframe: Dataframe to clean.
-            column_name: Column name to clean.
-
-        Returns: Cleaned dataframe.
-
-        """
-    dataframe[column_name] = dataframe[column_name].str.replace(r'[0-9]', '', regex=True)
-    return dataframe
-
-
 def clean_text(dataframe, column_name) -> pd.DataFrame:
     """ Clean text from dataframe.
 
@@ -99,9 +72,7 @@ def clean_text(dataframe, column_name) -> pd.DataFrame:
     """
     stopwords = load_stopwords()
     dataframe = convert_to_lowercase(dataframe, column_name)
-    # dataframe = remove_numbers(dataframe, column_name)
-    # dataframe = remove_punctuation(dataframe, column_name)
-    dataframe = remove_tags(dataframe, column_name)
+    dataframe = remove_punctuation(dataframe, column_name)
     dataframe = remove_stopwords(dataframe, column_name, stopwords)
     return dataframe
 
