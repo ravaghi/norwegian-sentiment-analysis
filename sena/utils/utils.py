@@ -99,8 +99,8 @@ def clean_text(dataframe, column_name) -> pd.DataFrame:
     """
     stopwords = load_stopwords()
     dataframe = convert_to_lowercase(dataframe, column_name)
-    dataframe = remove_numbers(dataframe, column_name)
-    dataframe = remove_punctuation(dataframe, column_name)
+    # dataframe = remove_numbers(dataframe, column_name)
+    # dataframe = remove_punctuation(dataframe, column_name)
     dataframe = remove_tags(dataframe, column_name)
     dataframe = remove_stopwords(dataframe, column_name, stopwords)
     return dataframe
@@ -108,7 +108,7 @@ def clean_text(dataframe, column_name) -> pd.DataFrame:
 
 def plot_history(history):
     plt.style.use("ggplot")
-    plt.figure(figsize=(12, 6))
+    plt.figure(figsize=(18, 6))
     plt.subplot(1, 2, 1)
     plt.plot(history.history["accuracy"], label="train")
     plt.plot(history.history["val_accuracy"], label="validation")

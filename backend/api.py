@@ -1,8 +1,8 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.data_collection.models import Article
-from src.data_collection.database import (
+from backend.data_collection import Article
+from backend.data_collection import (
     fetch_articles,
     fetch_article
 )

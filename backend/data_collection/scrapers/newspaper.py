@@ -2,8 +2,8 @@ from bs4 import BeautifulSoup
 import requests
 from pydantic import ValidationError
 from tqdm import tqdm
-from backend.src.data_collection.database import save_articles, article_exists
-from backend.src.data_collection.models import Article
+from backend.data_collection.database import save_articles, article_exists
+from backend.data_collection.models import Article
 from abc import ABC, abstractmethod
 from datetime import datetime
 

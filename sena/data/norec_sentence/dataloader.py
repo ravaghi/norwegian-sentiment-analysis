@@ -1,5 +1,8 @@
 import json
 import pandas as pd
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def load_full_dataset() -> dict:
@@ -10,7 +13,7 @@ def load_full_dataset() -> dict:
     """
     data = {}
     for name in ["train", "test", "dev"]:
-        with open(f"multiclass/{name}.json", encoding="utf-8") as file:
+        with open(os.path.join(BASE_DIR, f"multiclass/{name}.json"), encoding="utf-8") as file:
             # Convert to pandas dataframe
             df = pd.DataFrame(json.load(file))
             # Convert labels to numerical values
@@ -53,7 +56,7 @@ def load_binary_dataset() -> dict:
     """
     data = {}
     for name in ["train", "test", "dev"]:
-        with open(f"binary/{name}.json", encoding="utf-8") as file:
+        with open(os.path.join(BASE_DIR, f"binary/{name}.json"), encoding="utf-8") as file:
             # Convert to pandas dataframe
             df = pd.DataFrame(json.load(file))
             # Convert labels to numerical values
