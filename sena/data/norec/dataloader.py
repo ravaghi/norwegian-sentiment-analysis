@@ -1,6 +1,7 @@
 import json
 import pandas as pd
 import os
+from tqdm import tqdm
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -15,20 +16,38 @@ def load_metadata() -> dict:
         return json.load(file)
 
 
-'''def load_full_dataset() -> dict:
+def load_full_dataset() -> dict:
     """Loads the full dataset.
 
     Returns: A dictionary of dataframes containing the multiclass datasets.
 
     """
+    metadata = load_metadata()
     data = {}
     for name in ["train", "test", "dev"]:
-        with open(os.path.join(BASE_DIR, f"{name}.json"), encoding="utf-8") as file:
-            # Convert to pandas dataframe
-            df = pd.DataFrame(json.load(file))
-            # Convert labels to numerical values
-            df["label"] = df["label"].replace({"Positive": 2, "Neutral": 1, "Negative": 0})
-            data[name] = df
+        current_data = []
+        current_dir = os.path.join(BASE_DIR, f"data/{name}/")
+        for file in tqdm(os.listdir(current_dir), desc=f"Loading {name} data"):
+            current_file_path = os.path.join(current_dir, file)
+            current_file_id = file.split(".")[0]
+            with open(current_file_path, encoding="utf-8") as current_file:
+                label = metadata[current_file_id]["rating"]
+                if label <= 2:
+                    label = 0
+                elif 2 < label <= 4:
+                    label = 1
+                else:
+                    label = 2
+                current_data.append(
+                    {
+                        "id": current_file_id,
+                        "text": current_file.read(),
+                        "label": label,
+                    }
+                )
+        # Convert to pandas dataframe
+        df = pd.DataFrame(current_data)
+        data[name] = df
     return data
 
 
@@ -64,14 +83,30 @@ def load_binary_dataset() -> dict:
     Returns: A dictionary of dataframes containing the binary dataset.
 
     """
+    metadata = load_metadata()
     data = {}
     for name in ["train", "test", "dev"]:
-        with open(os.path.join(BASE_DIR, f"binary/{name}.json"), encoding="utf-8") as file:
-            # Convert to pandas dataframe
-            df = pd.DataFrame(json.load(file))
-            # Convert labels to numerical values
-            df["label"] = df["label"].replace({"Positive": 1, "Negative": 0})
-            data[name] = df
+        current_data = []
+        current_dir = os.path.join(BASE_DIR, f"data/{name}/")
+        for file in tqdm(os.listdir(current_dir), desc=f"Loading {name} data"):
+            current_file_path = os.path.join(current_dir, file)
+            current_file_id = file.split(".")[0]
+            with open(current_file_path, encoding="utf-8") as current_file:
+                label = metadata[current_file_id]["rating"]
+                if label <= 3:
+                    label = 0
+                else:
+                    label = 1
+                current_data.append(
+                    {
+                        "id": current_file_id,
+                        "text": current_file.read(),
+                        "label": label,
+                    }
+                )
+        # Convert to pandas dataframe
+        df = pd.DataFrame(current_data)
+        data[name] = df
     return data
 
 
@@ -96,7 +131,4 @@ def load_balanced_binary_dataset() -> dict:
         result = pd.concat([postives_df, negatives_df])
         balanced_data[df_name] = result
 
-    return balanced_data'''
-
-if __name__ == '__main__':
-    print(load_metadata())
+    return balanced_data
