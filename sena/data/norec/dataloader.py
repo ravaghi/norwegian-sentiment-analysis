@@ -25,26 +25,32 @@ def load_full_dataset() -> dict:
     metadata = load_metadata()
     data = {}
     for name in ["train", "test", "dev"]:
-        current_data = []
-        current_dir = os.path.join(BASE_DIR, f"data/{name}/")
-        for file in tqdm(os.listdir(current_dir), desc=f"Loading {name} data"):
-            current_file_path = os.path.join(current_dir, file)
-            current_file_id = file.split(".")[0]
-            with open(current_file_path, encoding="utf-8") as current_file:
-                label = metadata[current_file_id]["rating"]
-                if label <= 2:
-                    label = 0
-                elif 2 < label <= 4:
-                    label = 1
-                else:
-                    label = 2
-                current_data.append(
-                    {
-                        "id": current_file_id,
-                        "text": current_file.read(),
-                        "label": label,
-                    }
-                )
+        if os.path.exists(os.path.join(BASE_DIR, f"data/{name}.json")):
+            with open(os.path.join(BASE_DIR, f"data/{name}.json"), encoding="utf-8") as file:
+                current_data = json.load(file)
+        else:
+            current_data = []
+            current_dir = os.path.join(BASE_DIR, f"data/{name}/")
+            for file in tqdm(os.listdir(current_dir), desc=f"Loading {name} data"):
+                current_file_path = os.path.join(current_dir, file)
+                current_file_id = file.split(".")[0]
+                with open(current_file_path, encoding="utf-8") as current_file:
+                    label = metadata[current_file_id]["rating"]
+                    if label <= 2:
+                        label = 0
+                    elif 2 < label <= 4:
+                        label = 1
+                    else:
+                        label = 2
+                    current_data.append(
+                        {
+                            "id": current_file_id,
+                            "text": current_file.read(),
+                            "label": label,
+                        }
+                    )
+            with open(os.path.join(BASE_DIR, f"data/{name}.json"), "w", encoding="utf-8") as file:
+                json.dump(current_data, file)
         # Convert to pandas dataframe
         df = pd.DataFrame(current_data)
         data[name] = df
@@ -86,24 +92,30 @@ def load_binary_dataset() -> dict:
     metadata = load_metadata()
     data = {}
     for name in ["train", "test", "dev"]:
-        current_data = []
-        current_dir = os.path.join(BASE_DIR, f"data/{name}/")
-        for file in tqdm(os.listdir(current_dir), desc=f"Loading {name} data"):
-            current_file_path = os.path.join(current_dir, file)
-            current_file_id = file.split(".")[0]
-            with open(current_file_path, encoding="utf-8") as current_file:
-                label = metadata[current_file_id]["rating"]
-                if label <= 3:
-                    label = 0
-                else:
-                    label = 1
-                current_data.append(
-                    {
-                        "id": current_file_id,
-                        "text": current_file.read(),
-                        "label": label,
-                    }
-                )
+        if os.path.exists(os.path.join(BASE_DIR, f"data/{name}.json")):
+            with open(os.path.join(BASE_DIR, f"data/{name}.json"), encoding="utf-8") as file:
+                current_data = json.load(file)
+        else:
+            current_data = []
+            current_dir = os.path.join(BASE_DIR, f"data/{name}/")
+            for file in tqdm(os.listdir(current_dir), desc=f"Loading {name} data"):
+                current_file_path = os.path.join(current_dir, file)
+                current_file_id = file.split(".")[0]
+                with open(current_file_path, encoding="utf-8") as current_file:
+                    label = metadata[current_file_id]["rating"]
+                    if label <= 3:
+                        label = 0
+                    else:
+                        label = 1
+                    current_data.append(
+                        {
+                            "id": current_file_id,
+                            "text": current_file.read(),
+                            "label": label,
+                        }
+                    )
+            with open(os.path.join(BASE_DIR, f"data/{name}.json"), "w", encoding="utf-8") as file:
+                json.dump(current_data, file)
         # Convert to pandas dataframe
         df = pd.DataFrame(current_data)
         data[name] = df
