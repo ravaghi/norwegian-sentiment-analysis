@@ -1,6 +1,10 @@
+import string
 import pandas as pd
 import json
 import os
+from nltk.corpus import stopwords as english_stopwords
+
+ENGLISH_STOPWORDS = set(english_stopwords.words('english'))
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -19,6 +23,7 @@ def load_stopwords() -> list:
 
 def remove_stopwords(dataframe, column_name, stopwords) -> pd.DataFrame:
     """Remove stopwords from dataframe.
+
     Args:
         dataframe: Dataframe to clean.
         column_name: Column name to clean.
@@ -27,44 +32,50 @@ def remove_stopwords(dataframe, column_name, stopwords) -> pd.DataFrame:
     Returns: Cleaned dataframe.
 
     """
-    dataframe[column_name] = dataframe[column_name].apply(lambda x: " ".join(
-        [word for word in x.split() if word not in stopwords and word != ""]))
-    return dataframe
+    dataframe_copy = dataframe.copy()
+    dataframe_copy[column_name] = dataframe_copy[column_name].apply(lambda x: " ".join(
+        [word for word in x.split() if
+         word not in stopwords and word not in ENGLISH_STOPWORDS and word != "" and word.isalpha()]))
+    return dataframe_copy
 
 
 def remove_punctuation(dataframe, column_name) -> pd.DataFrame:
     """Remove punctuations from dataframe.
+
         Args:
             dataframe: Dataframe to clean.
             column_name: Column name to clean.
 
-        Returns: Cleaned dataframe.
+    Returns: Cleaned dataframe.
 
-        """
-    dataframe[column_name] = dataframe[column_name].str.replace(r'[^\w\s]', '', regex=True)
-    return dataframe
+    """
+    dataframe_copy = dataframe.copy()
+    dataframe_copy[column_name] = dataframe_copy[column_name].str.translate(
+        str.maketrans('', '', string.punctuation + string.digits))
+    return dataframe_copy
 
 
 def convert_to_lowercase(dataframe, column_name) -> pd.DataFrame:
     """Convert text to lowercase.
 
-    Args:
-        dataframe: Dataframe to clean.
-        column_name: Column name to clean.
+        Args:
+            dataframe: Dataframe to clean.
+            column_name: Column name to clean.
 
     Returns: Cleaned dataframe.
 
     """
-    dataframe[column_name] = dataframe[column_name].apply(lambda x: x.lower())
-    return dataframe
+    dataframe_copy = dataframe.copy()
+    dataframe_copy[column_name] = dataframe_copy[column_name].apply(lambda x: x.lower())
+    return dataframe_copy
 
 
 def clean_text(dataframe, column_name) -> pd.DataFrame:
     """ Clean text from dataframe.
 
-    Args:
-        dataframe: Dataframe to clean.
-        column_name: Column name to clean.
+        Args:
+            dataframe: Dataframe to clean.
+            column_name: Column name to clean.
 
     Returns: Cleaned dataframe.
 

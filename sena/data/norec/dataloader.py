@@ -44,7 +44,6 @@ def load_full_dataset() -> dict:
                         label = 2
                     current_data.append(
                         {
-                            "id": current_file_id,
                             "text": current_file.read(),
                             "label": label,
                         }
@@ -109,7 +108,6 @@ def load_binary_dataset() -> dict:
                         label = 1
                     current_data.append(
                         {
-                            "id": current_file_id,
                             "text": current_file.read(),
                             "label": label,
                         }
