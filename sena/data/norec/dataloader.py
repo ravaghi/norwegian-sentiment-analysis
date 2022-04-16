@@ -25,13 +25,13 @@ def load_full_dataset() -> dict:
     metadata = load_metadata()
     data = {}
     for name in ["train", "test", "dev"]:
-        if os.path.exists(os.path.join(BASE_DIR, f"data/{name}.json")):
-            with open(os.path.join(BASE_DIR, f"data/{name}.json"), encoding="utf-8") as file:
+        if os.path.exists(os.path.join(BASE_DIR, f"data/multiclass/{name}.json")):
+            with open(os.path.join(BASE_DIR, f"data/multiclass/{name}.json"), encoding="utf-8") as file:
                 current_data = json.load(file)
         else:
             current_data = []
             current_dir = os.path.join(BASE_DIR, f"data/{name}/")
-            for file in tqdm(os.listdir(current_dir), desc=f"Loading {name} data"):
+            for file in tqdm(os.listdir(current_dir), desc=f"Loading multiclass {name} data"):
                 current_file_path = os.path.join(current_dir, file)
                 current_file_id = file.split(".")[0]
                 with open(current_file_path, encoding="utf-8") as current_file:
@@ -48,7 +48,7 @@ def load_full_dataset() -> dict:
                             "label": label,
                         }
                     )
-            with open(os.path.join(BASE_DIR, f"data/{name}.json"), "w", encoding="utf-8") as file:
+            with open(os.path.join(BASE_DIR, f"data/multiclass/{name}.json"), "w", encoding="utf-8") as file:
                 json.dump(current_data, file)
         # Convert to pandas dataframe
         df = pd.DataFrame(current_data)
@@ -91,13 +91,13 @@ def load_binary_dataset() -> dict:
     metadata = load_metadata()
     data = {}
     for name in ["train", "test", "dev"]:
-        if os.path.exists(os.path.join(BASE_DIR, f"data/{name}.json")):
-            with open(os.path.join(BASE_DIR, f"data/{name}.json"), encoding="utf-8") as file:
+        if os.path.exists(os.path.join(BASE_DIR, f"data/binary/{name}.json")):
+            with open(os.path.join(BASE_DIR, f"data/binary/{name}.json"), encoding="utf-8") as file:
                 current_data = json.load(file)
         else:
             current_data = []
             current_dir = os.path.join(BASE_DIR, f"data/{name}/")
-            for file in tqdm(os.listdir(current_dir), desc=f"Loading {name} data"):
+            for file in tqdm(os.listdir(current_dir), desc=f"Loading binary {name} data"):
                 current_file_path = os.path.join(current_dir, file)
                 current_file_id = file.split(".")[0]
                 with open(current_file_path, encoding="utf-8") as current_file:
@@ -112,7 +112,7 @@ def load_binary_dataset() -> dict:
                             "label": label,
                         }
                     )
-            with open(os.path.join(BASE_DIR, f"data/{name}.json"), "w", encoding="utf-8") as file:
+            with open(os.path.join(BASE_DIR, f"data/binary/{name}.json"), "w", encoding="utf-8") as file:
                 json.dump(current_data, file)
         # Convert to pandas dataframe
         df = pd.DataFrame(current_data)
