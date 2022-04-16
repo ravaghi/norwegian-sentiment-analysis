@@ -35,7 +35,7 @@ def remove_stopwords(dataframe, column_name, stopwords) -> pd.DataFrame:
     dataframe_copy = dataframe.copy()
     dataframe_copy[column_name] = dataframe_copy[column_name].apply(lambda x: " ".join(
         [word for word in x.split() if
-         word not in stopwords and word not in ENGLISH_STOPWORDS and word != "" and word.isalpha()]))
+         word not in stopwords and word not in ENGLISH_STOPWORDS and word != "" and word.isalpha() and "\n" not in word]))
     return dataframe_copy
 
 
