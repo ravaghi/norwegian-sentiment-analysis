@@ -22,20 +22,27 @@ def plot_history(history):
 
 
 def plot_histories(histories):
-    plt.style.use("ggplot")
-    plt.figure(figsize=(20, 10))
-    for name, history in histories.items():
-        acc = history.history['val_accuracy']
-        loss = history.history['val_loss']
+    for dataset_type, model_histories in histories.items():
+        plt.style.use("ggplot")
+        plt.figure(figsize=(20, 10))
+        for model_history in model_histories:
+            model_name = model_history["model"]
+            dataset_name = model_history["dataset"]
 
-        plt.subplot(2, 2, 1)
-        plt.plot(acc, label=name)
-        plt.title(f'Training Accuracy')
-        plt.legend(loc='lower right')
+            acc = model_history["history"].history['val_accuracy']
+            loss = model_history["history"].history['val_loss']
 
-        plt.subplot(2, 2, 2)
-        plt.plot(loss, label=name)
-        plt.title(f'Training Loss')
-        plt.legend(loc='upper right')
+            label = f"{model_name}-{dataset_name}"
 
-    plt.show()
+            plt.subplot(2, 2, 1)
+            plt.plot(acc, label=label)
+            plt.title(f'Validation Accuracy')
+            plt.legend()
+
+            plt.subplot(2, 2, 2)
+            plt.plot(loss, label=label)
+            plt.title(f'Validation Loss')
+            plt.legend()
+
+        plt.savefig(dataset_type + "_training.png")
+        plt.show()
