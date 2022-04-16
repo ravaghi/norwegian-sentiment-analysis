@@ -1,7 +1,6 @@
 import numpy as np
 import os
 from tqdm import tqdm
-import deepdish
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -14,8 +13,8 @@ def load_embeddings() -> dict:
     """
 
     # Load numpy embeddings from the file if it exists
-    if os.path.exists(os.path.join(BASE_DIR, 'glove.4M.100d.h5')):
-        return deepdish.io.load(os.path.join(BASE_DIR, 'glove.4M.100d.h5'))
+    if os.path.exists(os.path.join(BASE_DIR, 'glove.4M.100d.npy')):
+        return np.load(os.path.join(BASE_DIR, 'glove.4M.100d.npy'), allow_pickle=True)
 
     # Load embeddings from text file
     with open(os.path.join(BASE_DIR, "glove.4M.100d.txt"), encoding="utf-8") as f:
@@ -30,6 +29,6 @@ def load_embeddings() -> dict:
         embeddings_index[word] = coefs
 
     # Save numpy embeddings to file
-    deepdish.io.save(os.path.join(BASE_DIR, 'glove.4M.100d.h5'), embeddings_index)
+    np.save(os.path.join(BASE_DIR, 'glove.4M.100d.npy'), embeddings_index)
 
     return embeddings_index
