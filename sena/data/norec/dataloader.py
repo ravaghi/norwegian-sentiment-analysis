@@ -51,8 +51,7 @@ def load_full_dataset() -> dict:
             with open(os.path.join(BASE_DIR, f"data/multiclass/{name}.json"), "w", encoding="utf-8") as file:
                 json.dump(current_data, file)
         # Convert to pandas dataframe
-        df = pd.DataFrame(current_data)
-        data[name] = df
+        data[name] = pd.DataFrame.from_dict(current_data)
     return data
 
 
@@ -115,8 +114,7 @@ def load_binary_dataset() -> dict:
             with open(os.path.join(BASE_DIR, f"data/binary/{name}.json"), "w", encoding="utf-8") as file:
                 json.dump(current_data, file)
         # Convert to pandas dataframe
-        df = pd.DataFrame(current_data)
-        data[name] = df
+        data[name] = pd.DataFrame.from_dict(current_data)
     return data
 
 
