@@ -7,7 +7,7 @@ import zipfile
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-def download_embedding() -> list:
+def download_embedding() -> np.ndarray:
     """Downloads the embeddings from the url.
 
     Returns: A list of the embeddings.
@@ -36,27 +36,6 @@ def download_embedding() -> list:
     with open(os.path.join(BASE_DIR, "glove.4M.100d.txt"), encoding="utf-8") as file:
         content = file.readlines()[1:]
 
-    return content
-
-
-def load_embeddings() -> dict:
-    """Loads the embeddings from the file.
-
-    Returns: Embeddings in a dictionary.
-
-    """
-
-    # Load numpy embeddings from the file if it exists
-    if os.path.exists(os.path.join(BASE_DIR, 'glove.4M.100d.npy')):
-        return np.load(os.path.join(BASE_DIR, 'glove.4M.100d.npy'), allow_pickle=True)
-
-    if os.path.exists(os.path.join(BASE_DIR, 'glove.4M.100d.txt')):
-        # Load embeddings from text file
-        with open(os.path.join(BASE_DIR, "glove.4M.100d.txt"), encoding="utf-8") as f:
-            content = f.readlines()[1:]
-    else:
-        content = download_embedding()
-
     # Create dictionary of embeddings
     embeddings_index = dict()
     for line in tqdm(content, desc="Loading embeddings"):
@@ -68,4 +47,20 @@ def load_embeddings() -> dict:
     # Save numpy embeddings to file
     np.save(os.path.join(BASE_DIR, 'glove.4M.100d.npy'), embeddings_index)
 
-    return embeddings_index
+    os.remove(os.path.join(BASE_DIR, "glove.4M.100d.txt"))
+
+    return np.load(os.path.join(BASE_DIR, 'glove.4M.100d.npy'), allow_pickle=True)
+
+
+def load_embeddings() -> np.ndarray:
+    """Loads the embeddings from the file.
+
+    Returns: Embeddings in a dictionary.
+
+    """
+
+    # Load numpy embeddings from the file if it exists
+    if os.path.exists(os.path.join(BASE_DIR, 'glove.4M.100d.npy')):
+        return np.load(os.path.join(BASE_DIR, 'glove.4M.100d.npy'), allow_pickle=True)
+
+    return download_embedding()
