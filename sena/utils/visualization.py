@@ -1,4 +1,8 @@
 import matplotlib.pyplot as plt
+import os
+from datetime import datetime
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def plot_history(history):
@@ -21,21 +25,22 @@ def plot_history(history):
     plt.show()
 
 
-def plot_histories(histories):
+def plot_histories(histories, plot_name):
+    plt.style.use("ggplot")
+    plt.figure(figsize=(30, 20))
     for name, history in histories.items():
-        plt.style.use("ggplot")
-        plt.figure(figsize=(20, 10))
-        acc = history.history['accuracy']
-        loss = history.history['loss']
+        acc = history.history['val_accuracy']
+        loss = history.history['val_loss']
 
         plt.subplot(2, 2, 1)
         plt.plot(acc, label=name)
-        plt.title(f'Training Accuracy')
-        plt.legend(loc='lower right')
+        plt.title(f'Validation Accuracy')
+        plt.legend()
 
         plt.subplot(2, 2, 2)
         plt.plot(loss, label=name)
-        plt.title(f'Training Loss')
-        plt.legend(loc='upper right')
+        plt.title(f'Validation Loss')
+        plt.legend()
 
     plt.show()
+    plt.savefig(os.path.join(BASE_DIR, f"plots/{plot_name}.png"))
