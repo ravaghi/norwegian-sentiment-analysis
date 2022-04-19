@@ -5,85 +5,78 @@ import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-def load_full_dataset() -> dict:
+def load_full_dataset(binary=False) -> dict:
     """Loads the full dataset.
 
-    Returns: A dictionary of dataframes containing the multiclass datasets.
+    Args:
+        binary: Whether to load the binary or multiclass dataset.
+
+    Returns: A dictionary of dataframes containing datasets.
 
     """
     data = {}
     for name in ["train", "test", "dev"]:
-        with open(os.path.join(BASE_DIR, f"multiclass/{name}.json"), encoding="utf-8") as file:
+        dataset_type = "binary" if binary else "multiclass"
+        with open(os.path.join(BASE_DIR, f"{dataset_type}/{name}.json"), encoding="utf-8") as file:
             # Convert to pandas dataframe
-            df = pd.DataFrame(json.load(file))
-            # Convert labels to numerical values
-            df["label"] = df["label"].replace({"Positive": 2, "Neutral": 1, "Negative": 0})
-            data[name] = df
+            df = pd.DataFrame.from_dict(json.load(file))
+
+            # Remove sentence ids
+            df = df.drop(columns=["sent_id"])
+
+        # Convert labels to numerical values
+        if binary:
+            df["label"] = df["label"].replace({"Negative": 0, "Positive": 1})
+        else:
+            df["label"] = df["label"].replace({"Negative": 0, "Neutral": 1, "Positive": 2})
+
+        # Add the dataframe to the dictionary and shuffle
+        data[name] = df.sample(frac=1).reset_index(drop=True)
     return data
 
 
-def load_balanced_dataset() -> dict:
+def load_balanced_dataset(binary=False) -> dict:
     """Loads the balanced dataset.
 
-    Returns: A dictionary of dataframes containing the multiclass datasets.
+    Args:
+        binary: Whether to load the binary or multiclass dataset.
+
+    Returns: A dictionary of dataframes containing balanced (undersampled) datasets.
 
     """
-    data = load_full_dataset()
+    data = load_full_dataset(binary=binary)
 
     balanced_data = {}
     for df_name, df in data.items():
-        postives_df = df[df["label"] == 2]
-        neutrals_df = df[df["label"] == 1]
-        negatives_df = df[df["label"] == 0]
+        if binary:
+            negatives_df = df[df["label"] == 0]
+            postives_df = df[df["label"] == 1]
 
-        smallest_size = min(postives_df.shape[0], neutrals_df.shape[0], negatives_df.shape[0])
+            # Undersample the minority class
+            smallest_size = min(negatives_df.shape[0], postives_df.shape[0])
 
-        postives_df = postives_df.sample(n=smallest_size)
-        neutrals_df = neutrals_df.sample(n=smallest_size)
-        negatives_df = negatives_df.sample(n=smallest_size)
+            # Resample the majority classes
+            negatives_df = negatives_df.sample(n=smallest_size)
+            postives_df = postives_df.sample(n=smallest_size)
 
-        result = pd.concat([postives_df, neutrals_df, negatives_df])
-        balanced_data[df_name] = result
+            # Concatenate the results
+            result = pd.concat([negatives_df, postives_df]).reset_index(drop=True)
+        else:
+            negatives_df = df[df["label"] == 0]
+            neutrals_df = df[df["label"] == 1]
+            postives_df = df[df["label"] == 2]
 
-    return balanced_data
+            # Undersample the minority class
+            smallest_size = min(postives_df.shape[0], neutrals_df.shape[0], negatives_df.shape[0])
 
+            # Resample the majority classes
+            negatives_df = negatives_df.sample(n=smallest_size)
+            neutrals_df = neutrals_df.sample(n=smallest_size)
+            postives_df = postives_df.sample(n=smallest_size)
 
-def load_binary_dataset() -> dict:
-    """Loads the binary dataset.
+            # Concatenate the results and shuffle
+            result = pd.concat([postives_df, neutrals_df, negatives_df]).sample(frac=1).reset_index(drop=True)
 
-    Returns: A dictionary of dataframes containing the binary dataset.
-
-    """
-    data = {}
-    for name in ["train", "test", "dev"]:
-        with open(os.path.join(BASE_DIR, f"binary/{name}.json"), encoding="utf-8") as file:
-            # Convert to pandas dataframe
-            df = pd.DataFrame(json.load(file))
-            # Convert labels to numerical values
-            df["label"] = df["label"].replace({"Positive": 1, "Negative": 0})
-            data[name] = df
-    return data
-
-
-def load_balanced_binary_dataset() -> dict:
-    """Loads the binary dataset.
-
-    Returns: A dictionary of dataframes containing the balanced binary datasets.
-
-    """
-    data = load_binary_dataset()
-
-    balanced_data = {}
-    for df_name, df in data.items():
-        postives_df = df[df["label"] == 1]
-        negatives_df = df[df["label"] == 0]
-
-        smallest_size = min(postives_df.shape[0], negatives_df.shape[0])
-
-        postives_df = postives_df.sample(n=smallest_size)
-        negatives_df = negatives_df.sample(n=smallest_size)
-
-        result = pd.concat([postives_df, negatives_df])
         balanced_data[df_name] = result
 
     return balanced_data
