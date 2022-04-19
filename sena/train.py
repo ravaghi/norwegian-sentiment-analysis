@@ -13,6 +13,7 @@ from collections import Counter
 import numpy as np
 import pandas as pd
 import math
+from datetime import datetime
 import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -211,7 +212,8 @@ if __name__ == '__main__':
 
             if val_acc > 0.8:
                 print(f"Saving model {model_name} ...")
-                model.save(os.path.join(BASE_DIR, f"models/{model_name}.h5"))
+                current_date = datetime.now().strftime("%Y%m%d")
+                model.save(os.path.join(BASE_DIR, f"models/{model_name}-{current_date}.h5"))
 
             histories[dataset_name][model.name] = history
 
