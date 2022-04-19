@@ -1,5 +1,6 @@
-import sena.data.norec.dataloader as dataloader
-import sena.utils.preprocessing as preprocessing
+import data.norec.dataloader as dataloader
+import utils.preprocessing as preprocessing
+from utils.visualization import plot_histories
 
 from keras.utils.np_utils import to_categorical
 from keras.preprocessing.text import Tokenizer
@@ -19,10 +20,10 @@ import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 datasets = {
-    "bnf": dataloader.load_full_dataset(binary=True),
-    "bnb": dataloader.load_balanced_dataset(binary=True),
-    "mnf": dataloader.load_full_dataset(binary=False),
-    "mnb": dataloader.load_balanced_dataset(binary=False)
+    "binary-imbalanced": dataloader.load_full_dataset(binary=True),
+    "binary-balanced": dataloader.load_balanced_dataset(binary=True),
+    "multiclass-imbalanced": dataloader.load_full_dataset(binary=False),
+    "multiclass-balanced": dataloader.load_balanced_dataset(binary=False)
 }
 
 
@@ -193,8 +194,8 @@ if __name__ == '__main__':
 
             # Early stopping to prevent overtraining when the model starts to overfit
             # And logging the history of the model to tensorboard
-            callbacks = [EarlyStopping(monitor="val_accuracy", patience=3),
-                         EarlyStopping(monitor="val_loss", patience=3),
+            callbacks = [EarlyStopping(monitor="val_accuracy", patience=5),
+                         EarlyStopping(monitor="val_loss", patience=5),
                          TensorBoard(log_dir=os.path.join(BASE_DIR, f"logs/{model_name}"))]
 
             print(f"\n--------------- Training model: {model_name} ---------------")
@@ -213,8 +214,14 @@ if __name__ == '__main__':
             if val_acc > 0.8:
                 print(f"Saving model {model_name} ...")
                 current_date = datetime.now().strftime("%Y%m%d")
-                model.save(os.path.join(BASE_DIR, f"models/{model_name}-{current_date}.h5"))
+                model.save(os.path.join(BASE_DIR, f"models/{model_name}-{current_date}-{val_acc}.h5"))
 
-            histories[dataset_name][model.name] = history
+            if dataset_name in histories.keys():
+                histories[dataset_name][model.name] = history
+            else:
+                histories[dataset_name] = {model.name: history}
 
             print(f"----------- Finished training model: {model_name} -----------\n")
+
+    for dataset_name, history in histories.items():
+        plot_histories(history, dataset_name)
