@@ -1,4 +1,4 @@
-import data.norec.dataloader as dataloader
+import data.norec_sentence.dataloader as dataloader
 import utils.preprocessing as preprocessing
 from utils.visualization import plot_histories
 
@@ -8,22 +8,22 @@ from keras.preprocessing.sequence import pad_sequences
 from keras.callbacks import EarlyStopping, TensorBoard
 from keras.regularizers import l1_l2
 from keras.models import Sequential
-from keras.layers import Dense, LSTM, Embedding, SpatialDropout1D, Dropout
+from keras.layers import Dense, LSTM, Embedding, SpatialDropout1D, Dropout, Bidirectional
 from keras.optimizers import adam_v2
 from collections import Counter
 import numpy as np
 import pandas as pd
 import math
-from datetime import datetime
 import os
+import json
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 datasets = {
-    "binary-imbalanced": dataloader.load_full_dataset(binary=True),
-    "binary-balanced": dataloader.load_balanced_dataset(binary=True),
-    "multiclass-imbalanced": dataloader.load_full_dataset(binary=False),
-    "multiclass-balanced": dataloader.load_balanced_dataset(binary=False)
+    "b-imbalanced": dataloader.load_full_dataset(binary=True),
+    "b-balanced": dataloader.load_balanced_dataset(binary=True),
+    "mc-imbalanced": dataloader.load_full_dataset(binary=False),
+    "mc-balanced": dataloader.load_balanced_dataset(binary=False)
 }
 
 
@@ -96,11 +96,14 @@ def get_data(dataset):
     }
 
 
-def baseline_model(embedding_dim, num_words, maxlen, num_classes, lstm_units, optimizer, dropout=None,
-                   regularizer=None):
+def baseline_model(embedding_dim, num_words, maxlen, num_classes, lstm_units,
+                   bilstm, optimizer, dropout=None, regularizer=None):
     model = Sequential(name="baseline")
     model.add(Embedding(num_words, embedding_dim, input_length=maxlen))
-    model.add(LSTM(lstm_units))
+    if bilstm:
+        model.add(Bidirectional(LSTM(lstm_units)))
+    else:
+        model.add(LSTM(lstm_units))
     model.add(Dense(num_classes, activation='softmax'))
 
     model.compile(loss="categorical_crossentropy",
@@ -109,11 +112,15 @@ def baseline_model(embedding_dim, num_words, maxlen, num_classes, lstm_units, op
     return model
 
 
-def model_1(embedding_dim, num_words, maxlen, num_classes, lstm_units, optimizer, dropout=None, regularizer=None):
+def model_1(embedding_dim, num_words, maxlen, num_classes, lstm_units,
+            bilstm, optimizer, dropout=None, regularizer=None):
     model = Sequential(name=f"baseline-dropout")
     model.add(Embedding(num_words, embedding_dim, input_length=maxlen))
     model.add(SpatialDropout1D(dropout))
-    model.add(LSTM(lstm_units))
+    if bilstm:
+        model.add(Bidirectional(LSTM(lstm_units)))
+    else:
+        model.add(LSTM(lstm_units))
     model.add(Dropout(dropout))
     model.add(Dense(num_classes, activation='softmax'))
 
@@ -123,10 +130,14 @@ def model_1(embedding_dim, num_words, maxlen, num_classes, lstm_units, optimizer
     return model
 
 
-def model_2(embedding_dim, num_words, maxlen, num_classes, lstm_units, optimizer, dropout=None, regularizer=None):
+def model_2(embedding_dim, num_words, maxlen, num_classes, lstm_units,
+            bilstm, optimizer, dropout=None, regularizer=None):
     model = Sequential(name=f"baseline-regularization")
     model.add(Embedding(num_words, embedding_dim, input_length=maxlen))
-    model.add(LSTM(lstm_units, kernel_regularizer=l1_l2(l1=regularizer, l2=regularizer)))
+    if bilstm:
+        model.add(Bidirectional(LSTM(lstm_units, kernel_regularizer=l1_l2(l1=regularizer, l2=regularizer))))
+    else:
+        model.add(LSTM(lstm_units, kernel_regularizer=l1_l2(l1=regularizer, l2=regularizer)))
     model.add(Dense(num_classes, activation='softmax'))
 
     model.compile(loss="categorical_crossentropy",
@@ -135,11 +146,15 @@ def model_2(embedding_dim, num_words, maxlen, num_classes, lstm_units, optimizer
     return model
 
 
-def model_3(embedding_dim, num_words, maxlen, num_classes, lstm_units, optimizer, dropout=None, regularizer=None):
+def model_3(embedding_dim, num_words, maxlen, num_classes, lstm_units,
+            bilstm, optimizer, dropout=None, regularizer=None):
     model = Sequential(name=f"baseline-dropout-regularization")
     model.add(Embedding(num_words, embedding_dim, input_length=maxlen))
     model.add(SpatialDropout1D(dropout))
-    model.add(LSTM(lstm_units, kernel_regularizer=l1_l2(l1=regularizer, l2=regularizer)))
+    if bilstm:
+        model.add(Bidirectional(LSTM(lstm_units, kernel_regularizer=l1_l2(l1=regularizer, l2=regularizer))))
+    else:
+        model.add(LSTM(lstm_units, kernel_regularizer=l1_l2(l1=regularizer, l2=regularizer)))
     model.add(Dropout(dropout))
     model.add(Dense(num_classes, activation='softmax'))
 
@@ -150,23 +165,20 @@ def model_3(embedding_dim, num_words, maxlen, num_classes, lstm_units, optimizer
 
 
 if __name__ == '__main__':
-    EPOCHS = 20
-    BATCH_SIZE = 32
-
-    EMBEDDING_DIM = 100
-    LSTM_UNITS = 64
-
+    EPOCHS = 3
+    BATCH_SIZE = 256
+    EMBEDDING_DIM = 10
+    LSTM_UNITS = 6
     REGULARIZER = 0.0003
     LEARNING_RATE = 0.001
     DROPOUT = 0.4
-
     optimizer = adam_v2.Adam(learning_rate=LEARNING_RATE)
 
     histories = {}
+    results = []
 
     for dataset_name, dataset in datasets.items():
         processed_data = get_data(dataset)
-
         X_train = processed_data["X_train"]
         X_val = processed_data["X_val"]
         X_test = processed_data["X_test"]
@@ -178,50 +190,76 @@ if __name__ == '__main__':
         num_classes = processed_data["num_classes"]
         num_words = processed_data["num_words"]
 
-        models = [
-            baseline_model(embedding_dim=EMBEDDING_DIM, num_words=num_words, maxlen=maxlen, num_classes=num_classes,
-                           lstm_units=LSTM_UNITS, optimizer=optimizer),
-            model_1(embedding_dim=EMBEDDING_DIM, num_words=num_words, maxlen=maxlen, num_classes=num_classes,
-                    lstm_units=LSTM_UNITS, optimizer=optimizer, dropout=DROPOUT),
-            model_2(embedding_dim=EMBEDDING_DIM, num_words=num_words, maxlen=maxlen, num_classes=num_classes,
-                    lstm_units=LSTM_UNITS, optimizer=optimizer, regularizer=REGULARIZER),
-            model_3(embedding_dim=EMBEDDING_DIM, num_words=num_words, maxlen=maxlen, num_classes=num_classes,
-                    lstm_units=LSTM_UNITS, optimizer=optimizer, dropout=DROPOUT, regularizer=REGULARIZER)
-        ]
+        for bilstm in [True, False]:
+            models = [
+                baseline_model(embedding_dim=EMBEDDING_DIM, num_words=num_words, maxlen=maxlen, num_classes=num_classes,
+                               bilstm=bilstm, lstm_units=LSTM_UNITS, optimizer=optimizer),
+                model_1(embedding_dim=EMBEDDING_DIM, num_words=num_words, maxlen=maxlen, num_classes=num_classes,
+                        bilstm=bilstm, lstm_units=LSTM_UNITS, optimizer=optimizer, dropout=DROPOUT),
+                model_2(embedding_dim=EMBEDDING_DIM, num_words=num_words, maxlen=maxlen, num_classes=num_classes,
+                        bilstm=bilstm, lstm_units=LSTM_UNITS, optimizer=optimizer, regularizer=REGULARIZER),
+                model_3(embedding_dim=EMBEDDING_DIM, num_words=num_words, maxlen=maxlen, num_classes=num_classes,
+                        bilstm=bilstm, lstm_units=LSTM_UNITS, optimizer=optimizer, dropout=DROPOUT,
+                        regularizer=REGULARIZER)
+            ]
 
-        for model in models:
-            model_name = dataset_name + "-" + model.name
+            for model in models:
+                model_name = dataset_name + "-" + model.name
+                lstm_type = "bilstm" if bilstm else "lstm"
 
-            # Early stopping to prevent overtraining when the model starts to overfit
-            # And logging the history of the model to tensorboard
-            callbacks = [EarlyStopping(monitor="val_accuracy", patience=5),
-                         EarlyStopping(monitor="val_loss", patience=5),
-                         TensorBoard(log_dir=os.path.join(BASE_DIR, f"logs/{model_name}"))]
+                logdir = os.path.join(BASE_DIR, f"logs/{lstm_type}/{model_name}")
+                # Early stopping to prevent overtraining when the model starts to overfit
+                # And logging the history of the model to tensorboard
+                callbacks = [EarlyStopping(monitor="val_accuracy", patience=5),
+                             EarlyStopping(monitor="val_loss", patience=5),
+                             TensorBoard(log_dir=logdir)]
 
-            print(f"\n--------------- Training model: {model_name} ---------------")
+                print(f"\n--------------- Training model: {lstm_type}-{model_name} ---------------")
+                history = model.fit(X_train, y_train,
+                                    epochs=EPOCHS,
+                                    batch_size=BATCH_SIZE,
+                                    validation_data=(X_val, y_val),
+                                    verbose=1,
+                                    callbacks=callbacks)
+                print(f"----------- Finished training model: {lstm_type}-{model_name} -----------\n")
 
-            history = model.fit(X_train, y_train,
-                                epochs=EPOCHS,
-                                batch_size=BATCH_SIZE,
-                                validation_data=(X_val, y_val),
-                                verbose=1,
-                                callbacks=callbacks)
+                val_loss, val_acc = model.evaluate(X_test, y_test, verbose=1)
 
-            val_loss, val_acc = model.evaluate(X_test, y_test, verbose=1)
-            print("Validation loss:", val_loss)
-            print("Validation accuracy:", val_acc)
+                model.save(os.path.join(BASE_DIR, f"models/{lstm_type}/{model_name}-{val_acc}.h5"))
 
-            if val_acc > 0.8:
-                print(f"Saving model {model_name} ...")
-                current_date = datetime.now().strftime("%Y%m%d")
-                model.save(os.path.join(BASE_DIR, f"models/{model_name}-{current_date}-{val_acc}.h5"))
+                if lstm_type in histories.keys():
+                    if dataset_name in histories[lstm_type].keys():
+                        histories[lstm_type][dataset_name][model.name] = history
+                    else:
+                        histories[lstm_type][dataset_name] = {model.name: history}
+                else:
+                    histories[lstm_type] = {dataset_name: {model.name: history}}
 
-            if dataset_name in histories.keys():
-                histories[dataset_name][model.name] = history
-            else:
-                histories[dataset_name] = {model.name: history}
+                results.append(
+                    {
+                        "dataset": dataset_name,
+                        "model": model.name,
+                        "val_loss": val_loss,
+                        "val_acc": val_acc,
+                        "lstm_type": lstm_type,
+                        "hyperparameters": {
+                            "embedding_dim": EMBEDDING_DIM,
+                            "num_words": num_words,
+                            "maxlen": maxlen,
+                            "num_classes": num_classes,
+                            "lstm_units": LSTM_UNITS,
+                            "dropout": DROPOUT,
+                            "regularizer": REGULARIZER,
+                            "optimizer_learning_rate": LEARNING_RATE
+                        }
+                    }
+                )
 
-            print(f"----------- Finished training model: {model_name} -----------\n")
+    # Save parameters and results to a json file
+    with open(os.path.join(BASE_DIR, "models/results.json"), "w") as f:
+        json.dump(results, f)
 
-    for dataset_name, history in histories.items():
-        plot_histories(history, dataset_name)
+    # Plot histories
+    for lstm_type, lstm_histories in histories.items():
+        for dataset_name, history in histories[lstm_type].items():
+            plot_histories(history, f"{lstm_type}/{dataset_name}")
