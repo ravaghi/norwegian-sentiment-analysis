@@ -185,7 +185,7 @@ def l2_regularizer_optimizer_model(X_train, X_val, y_train, y_val, maxlen, num_c
 
 
 if __name__ == '__main__':
-    EPOCHS = 20
+    EPOCHS = 15
     BATCH_SIZE = 32
 
     EMBEDDING_DIM = 100
