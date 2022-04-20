@@ -1,4 +1,4 @@
-import data.norec_sentence.dataloader as dataloader
+import data.norec.dataloader as dataloader
 import utils.preprocessing as preprocessing
 from utils.visualization import plot_histories
 
@@ -185,8 +185,8 @@ def l2_regularizer_optimizer_model(X_train, X_val, y_train, y_val, maxlen, num_c
 
 
 if __name__ == '__main__':
-    EPOCHS = 100
-    BATCH_SIZE = 256
+    EPOCHS = 20
+    BATCH_SIZE = 32
 
     EMBEDDING_DIM = 100
     LSTM_UNITS = 32
@@ -201,11 +201,11 @@ if __name__ == '__main__':
     num_classes = processed_data["num_classes"]
     num_words = processed_data["num_words"]
 
-    dropout_optimizer_model(X_train, X_val, y_train, y_val, maxlen, num_classes, num_words, LSTM_UNITS,
-                            EMBEDDING_DIM, EPOCHS, BATCH_SIZE),
-    learning_rate_optimizer_model(X_train, X_val, y_train, y_val, maxlen, num_classes, num_words, LSTM_UNITS,
-                                  EMBEDDING_DIM, EPOCHS, BATCH_SIZE),
-    l1_regularizer_optimizer_model(X_train, X_val, y_train, y_val, maxlen, num_classes, num_words, LSTM_UNITS,
-                                   EMBEDDING_DIM, EPOCHS, BATCH_SIZE),
-    l2_regularizer_optimizer_model(X_train, X_val, y_train, y_val, maxlen, num_classes, num_words, LSTM_UNITS,
-                                   EMBEDDING_DIM, EPOCHS, BATCH_SIZE)
+    dropout_optimizer_model(X_train, X_val, y_train, y_val, maxlen, num_classes, num_words,
+                            LSTM_UNITS, EMBEDDING_DIM, EPOCHS, BATCH_SIZE)
+    learning_rate_optimizer_model(X_train, X_val, y_train, y_val, maxlen, num_classes, num_words,
+                                  LSTM_UNITS, EMBEDDING_DIM, EPOCHS, BATCH_SIZE)
+    l1_regularizer_optimizer_model(X_train, X_val, y_train, y_val, maxlen, num_classes, num_words,
+                                   LSTM_UNITS, EMBEDDING_DIM, EPOCHS, BATCH_SIZE)
+    l2_regularizer_optimizer_model(X_train, X_val, y_train, y_val, maxlen, num_classes, num_words,
+                                   LSTM_UNITS, EMBEDDING_DIM, EPOCHS, BATCH_SIZE)
