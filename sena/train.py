@@ -1,4 +1,4 @@
-import data.norec_sentence.dataloader as dataloader
+import data.norec.dataloader as dataloader
 import utils.preprocessing as preprocessing
 from utils.visualization import plot_histories
 
@@ -97,7 +97,7 @@ def get_data(dataset):
 
 
 def baseline_model(embedding_dim, num_words, maxlen, num_classes, lstm_units,
-                   bilstm, optimizer, dropout=None, regularizer=None):
+                   bilstm, optimizer):
     model = Sequential(name="baseline")
     model.add(Embedding(num_words, embedding_dim, input_length=maxlen))
     if bilstm:
@@ -113,7 +113,7 @@ def baseline_model(embedding_dim, num_words, maxlen, num_classes, lstm_units,
 
 
 def model_1(embedding_dim, num_words, maxlen, num_classes, lstm_units,
-            bilstm, optimizer, dropout=None, regularizer=None):
+            bilstm, optimizer, dropout):
     model = Sequential(name=f"baseline-dropout")
     model.add(Embedding(num_words, embedding_dim, input_length=maxlen))
     model.add(SpatialDropout1D(dropout))
@@ -131,13 +131,13 @@ def model_1(embedding_dim, num_words, maxlen, num_classes, lstm_units,
 
 
 def model_2(embedding_dim, num_words, maxlen, num_classes, lstm_units,
-            bilstm, optimizer, dropout=None, regularizer=None):
+            bilstm, optimizer, l1_factor, l2_factor):
     model = Sequential(name=f"baseline-regularization")
     model.add(Embedding(num_words, embedding_dim, input_length=maxlen))
     if bilstm:
-        model.add(Bidirectional(LSTM(lstm_units, kernel_regularizer=l1_l2(l1=regularizer, l2=regularizer))))
+        model.add(Bidirectional(LSTM(lstm_units, kernel_regularizer=l1_l2(l1=l1_factor, l2=l2_factor))))
     else:
-        model.add(LSTM(lstm_units, kernel_regularizer=l1_l2(l1=regularizer, l2=regularizer)))
+        model.add(LSTM(lstm_units, kernel_regularizer=l1_l2(l1=l1_factor, l2=l2_factor)))
     model.add(Dense(num_classes, activation='softmax'))
 
     model.compile(loss="categorical_crossentropy",
@@ -147,14 +147,14 @@ def model_2(embedding_dim, num_words, maxlen, num_classes, lstm_units,
 
 
 def model_3(embedding_dim, num_words, maxlen, num_classes, lstm_units,
-            bilstm, optimizer, dropout=None, regularizer=None):
+            bilstm, optimizer, dropout, l1_factor, l2_factor):
     model = Sequential(name=f"baseline-dropout-regularization")
     model.add(Embedding(num_words, embedding_dim, input_length=maxlen))
     model.add(SpatialDropout1D(dropout))
     if bilstm:
-        model.add(Bidirectional(LSTM(lstm_units, kernel_regularizer=l1_l2(l1=regularizer, l2=regularizer))))
+        model.add(Bidirectional(LSTM(lstm_units, kernel_regularizer=l1_l2(l1=l1_factor, l2=l2_factor))))
     else:
-        model.add(LSTM(lstm_units, kernel_regularizer=l1_l2(l1=regularizer, l2=regularizer)))
+        model.add(LSTM(lstm_units, kernel_regularizer=l1_l2(l1=l1_factor, l2=l2_factor)))
     model.add(Dropout(dropout))
     model.add(Dense(num_classes, activation='softmax'))
 
@@ -165,13 +165,14 @@ def model_3(embedding_dim, num_words, maxlen, num_classes, lstm_units,
 
 
 if __name__ == '__main__':
-    EPOCHS = 3
-    BATCH_SIZE = 256
-    EMBEDDING_DIM = 10
-    LSTM_UNITS = 6
-    REGULARIZER = 0.0003
-    LEARNING_RATE = 0.001
-    DROPOUT = 0.4
+    EPOCHS = 20
+    BATCH_SIZE = 32
+    EMBEDDING_DIM = 100
+    LSTM_UNITS = 32
+    L1_FACTOR = 0.001
+    L2_FACTOR = 0.1
+    LEARNING_RATE = 1e-5
+    DROPOUT = 0.5
     optimizer = adam_v2.Adam(learning_rate=LEARNING_RATE)
 
     histories = {}
@@ -197,10 +198,11 @@ if __name__ == '__main__':
                 model_1(embedding_dim=EMBEDDING_DIM, num_words=num_words, maxlen=maxlen, num_classes=num_classes,
                         bilstm=bilstm, lstm_units=LSTM_UNITS, optimizer=optimizer, dropout=DROPOUT),
                 model_2(embedding_dim=EMBEDDING_DIM, num_words=num_words, maxlen=maxlen, num_classes=num_classes,
-                        bilstm=bilstm, lstm_units=LSTM_UNITS, optimizer=optimizer, regularizer=REGULARIZER),
+                        bilstm=bilstm, lstm_units=LSTM_UNITS, optimizer=optimizer, l1_factor=L1_FACTOR,
+                        l2_factor=L2_FACTOR),
                 model_3(embedding_dim=EMBEDDING_DIM, num_words=num_words, maxlen=maxlen, num_classes=num_classes,
-                        bilstm=bilstm, lstm_units=LSTM_UNITS, optimizer=optimizer, dropout=DROPOUT,
-                        regularizer=REGULARIZER)
+                        bilstm=bilstm, lstm_units=LSTM_UNITS, optimizer=optimizer, dropout=DROPOUT, l1_factor=L1_FACTOR,
+                        l2_factor=L2_FACTOR)
             ]
 
             for model in models:
@@ -249,7 +251,8 @@ if __name__ == '__main__':
                             "num_classes": num_classes,
                             "lstm_units": LSTM_UNITS,
                             "dropout": DROPOUT,
-                            "regularizer": REGULARIZER,
+                            "l1_factor": L1_FACTOR,
+                            "l2_factor": L2_FACTOR,
                             "optimizer_learning_rate": LEARNING_RATE
                         }
                     }
