@@ -66,7 +66,6 @@ if __name__ == "__main__":
     tuner = Hyperband(
         build_model,
         objective="val_accuracy",
-        min_epochs=5,
         max_epochs=50,
         factor=3,
         directory=BASE_DIR,
@@ -89,7 +88,7 @@ if __name__ == "__main__":
     tuner = pickle.load(open("tuner.pkl", "rb"))
 
     # Loading the best model
-    best_hps = tuner.get_best_hyperparameters(num_results=1)[0]
+    best_hps = tuner.get_best_hyperparameters(1)[0]
     model = tuner.hypermodel.build(best_hps)
     history = model.fit(X_train, y_train, epochs=EPOCHS, batch_size=BATCH_SIZE,
                         validation_data=(X_val, y_val), callbacks=callbacks)
