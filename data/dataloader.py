@@ -44,6 +44,7 @@ def load_data(dataset):
     test = dataset["test"]
 
     # Cleaning values in the text column
+    print("Cleaning text...")
     train = preprocessing.clean_text(train, "text")
     val = preprocessing.clean_text(val, "text")
     test = preprocessing.clean_text(test, "text")
@@ -57,11 +58,13 @@ def load_data(dataset):
     X_test, y_test = test["text"], test["label"]
 
     # Fitting a tokenizer to text from the combined data
+    print("Fitting tokenizer...")
     num_words = get_vocab_size(combined_data["text"])
     tokenizer = Tokenizer(num_words=num_words, oov_token="<OOV>")
     tokenizer.fit_on_texts(combined_data["text"].tolist())
 
     # Converting texts to sequences
+    print("Converting texts to sequences...")
     X_train = tokenizer.texts_to_sequences(X_train)
     X_val = tokenizer.texts_to_sequences(X_val)
     X_test = tokenizer.texts_to_sequences(X_test)
@@ -70,6 +73,7 @@ def load_data(dataset):
     maxlen = (int(np.ceil(np.mean([len(text.split()) for text in combined_data.text]))))
 
     # Padding sequences with zeros until they reach a certain length
+    print("Padding sequences...")
     X_train = pad_sequences(X_train, maxlen=maxlen)
     X_val = pad_sequences(X_val, maxlen=maxlen)
     X_test = pad_sequences(X_test, maxlen=maxlen)
@@ -78,9 +82,12 @@ def load_data(dataset):
     num_classes = len(np.unique(y_train))
 
     # One-hot encoding of labels
+    print("One-hot encoding labels...")
     y_train = to_categorical(y_train, num_classes=num_classes)
     y_val = to_categorical(y_val, num_classes=num_classes)
     y_test = to_categorical(y_test, num_classes=num_classes)
+
+    print("Done!")
 
     return {
         "X_train": X_train,
@@ -91,5 +98,6 @@ def load_data(dataset):
         "y_test": y_test,
         "maxlen": maxlen,
         "num_classes": num_classes,
-        "num_words": num_words
+        "num_words": num_words,
+        "tokenizer": tokenizer
     }
