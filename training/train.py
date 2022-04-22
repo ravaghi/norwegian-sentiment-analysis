@@ -1,4 +1,8 @@
-import data.norec_sentence.dataloader as dataloader
+import sys
+
+sys.path.append('../')
+
+import data.norec.dataloader as dataloader
 from data.dataloader import load_data
 from utils.visualization import plot_histories
 from keras.callbacks import EarlyStopping, TensorBoard
@@ -18,6 +22,11 @@ datasets = {
 
 
 def load_best_hps():
+    """Loads the best hyperparameters from the json file.
+
+    Returns:
+         dict: The hyperparameters.
+    """
     with open("best_hps.json", "r") as f:
         best_hps = json.load(f)
 

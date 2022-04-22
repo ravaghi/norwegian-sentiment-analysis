@@ -1,4 +1,5 @@
 import sys
+
 sys.path.append('../')
 
 import data.norec.dataloader as dataloader
@@ -94,9 +95,11 @@ if __name__ == "__main__":
     # Loading the best model
     best_hps = tuner.get_best_hyperparameters(1)[0]
 
+    # Saving hyperparameters of the best model
     with open("best_hps.json", "w") as f:
         json.dump(best_hps.get_config(), f)
 
+    # Loading the best model and training it on the best hyperparameters
     model = tuner.hypermodel.build(best_hps)
     history = model.fit(X_train, y_train, epochs=EPOCHS, batch_size=BATCH_SIZE,
                         validation_data=(X_val, y_val), callbacks=callbacks)
