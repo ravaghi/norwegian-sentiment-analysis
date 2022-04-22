@@ -1,4 +1,4 @@
-import data.norec.dataloader as dataloader
+import data.norec_sentence.dataloader as dataloader
 from data.dataloader import load_data
 from utils.visualization import plot_histories
 from keras.callbacks import EarlyStopping, TensorBoard
@@ -15,6 +15,13 @@ datasets = {
     "imbalanced": dataloader.load_full_dataset(),
     "balanced": dataloader.load_balanced_dataset()
 }
+
+
+def load_best_hps():
+    with open("best_hps.json", "r") as f:
+        best_hps = json.load(f)
+
+    return best_hps.get("values")
 
 
 def baseline_model(embedding_dim, num_words, maxlen, num_classes, lstm_units,
@@ -81,14 +88,16 @@ def model_3(embedding_dim, num_words, maxlen, num_classes, lstm_units,
 
 
 if __name__ == '__main__':
+    best_hps = load_best_hps()
+
     EPOCHS = 20
     BATCH_SIZE = 32
-    EMBEDDING_DIM = 100
-    LSTM_UNITS = 32
-    L1_FACTOR = 0.001
-    L2_FACTOR = 0.1
-    LEARNING_RATE = 1e-5
-    DROPOUT = 0.5
+    EMBEDDING_DIM = best_hps["embedding_dim"]
+    LSTM_UNITS = best_hps["lstm_units"]
+    L1_FACTOR = best_hps["l1_regularizer"]
+    L2_FACTOR = best_hps["l2_regularizer"]
+    LEARNING_RATE = best_hps["learning_rate"]
+    DROPOUT = best_hps["dropout"]
     optimizer = adam_v2.Adam(learning_rate=LEARNING_RATE)
 
     histories = {}
@@ -102,7 +111,6 @@ if __name__ == '__main__':
         y_train = processed_data["y_train"]
         y_val = processed_data["y_val"]
         y_test = processed_data["y_test"]
-        tokenizer = processed_data["tokenizer"]
         maxlen = processed_data["maxlen"]
         num_classes = processed_data["num_classes"]
         num_words = processed_data["num_words"]

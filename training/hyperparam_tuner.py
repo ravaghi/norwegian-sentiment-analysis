@@ -1,3 +1,6 @@
+import sys
+sys.path.append('../')
+
 import data.norec.dataloader as dataloader
 from utils.visualization import plot_history
 from data.dataloader import load_data
@@ -9,6 +12,7 @@ from keras.callbacks import EarlyStopping
 from keras_tuner import Hyperband
 import os
 import pickle
+import json
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -89,6 +93,10 @@ if __name__ == "__main__":
 
     # Loading the best model
     best_hps = tuner.get_best_hyperparameters(1)[0]
+
+    with open("best_hps.json", "w") as f:
+        json.dump(best_hps.get_config(), f)
+
     model = tuner.hypermodel.build(best_hps)
     history = model.fit(X_train, y_train, epochs=EPOCHS, batch_size=BATCH_SIZE,
                         validation_data=(X_val, y_val), callbacks=callbacks)
