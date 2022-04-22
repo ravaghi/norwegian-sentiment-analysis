@@ -27,8 +27,7 @@ def build_model(hp):
     model = Sequential()
     model.add(Embedding(input_dim=num_words, output_dim=hp_embedding_dim, input_length=maxlen))
     model.add(SpatialDropout1D(rate=hp_spatial_dropout))
-    model.add(LSTM(units=hp_lstm_units, dropout=hp_dropout, recurrent_dropout=hp_recurrent_dropout,
-                   kernel_regularizer=l1_l2(l1=hp_l1_reg, l2=hp_l2_reg)))
+    model.add(LSTM(units=hp_lstm_units, dropout=hp_dropout, kernel_regularizer=l1_l2(l1=hp_l1_reg, l2=hp_l2_reg)))
     model.add(Dense(units=num_classes, activation="softmax"))
     model.compile(optimizer=adam_v2.Adam(hp_learning_rate), loss="categorical_crossentropy", metrics=["accuracy"])
 
