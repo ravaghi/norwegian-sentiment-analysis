@@ -71,7 +71,7 @@ if __name__ == "__main__":
     tuner = Hyperband(
         build_model,
         objective="val_accuracy",
-        max_epochs=50,
+        max_epochs=100,
         factor=3,
         directory=BASE_DIR,
         project_name="sena_tuner",
