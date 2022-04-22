@@ -103,15 +103,15 @@ if __name__ == "__main__":
     )
 
     # Saving results to file
-    with open(f"tuner.pkl", "wb") as f:
+    with open(f"{PROJECT_NAME}/tuner.pkl", "wb") as f:
         pickle.dump(tuner, f)
-    tuner = pickle.load(open("tuner.pkl", "rb"))
+    tuner = pickle.load(open(f"{PROJECT_NAME}/tuner.pkl", "rb"))
 
     # Loading the best model
     best_hps = tuner.get_best_hyperparameters(1)[0]
 
     # Saving hyperparameters of the best model
-    with open("best_hps.json", "w") as f:
+    with open(f"{PROJECT_NAME}/best_hps.json", "w") as f:
         json.dump(best_hps.get_config(), f)
 
     # Loading the best model and training it on the best hyperparameters
