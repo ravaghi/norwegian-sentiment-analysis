@@ -4,7 +4,7 @@ from utils.visualization import plot_histories
 from keras.callbacks import EarlyStopping, TensorBoard
 from keras.regularizers import l1_l2
 from keras.models import Sequential
-from keras.layers import Dense, LSTM, Embedding, SpatialDropout1D, Dropout, Bidirectional
+from keras.layers import Dense, LSTM, Embedding, Bidirectional
 from keras.optimizers import adam_v2
 import os
 import json
@@ -37,12 +37,10 @@ def model_1(embedding_dim, num_words, maxlen, num_classes, lstm_units,
             bilstm, optimizer, dropout):
     model = Sequential(name=f"baseline-dropout")
     model.add(Embedding(num_words, embedding_dim, input_length=maxlen))
-    model.add(SpatialDropout1D(dropout))
     if bilstm:
         model.add(Bidirectional(LSTM(lstm_units)))
     else:
-        model.add(LSTM(lstm_units))
-    model.add(Dropout(dropout))
+        model.add(LSTM(lstm_units, dropout=dropout))
     model.add(Dense(num_classes, activation='softmax'))
 
     model.compile(loss="categorical_crossentropy",
@@ -60,7 +58,6 @@ def model_2(embedding_dim, num_words, maxlen, num_classes, lstm_units,
     else:
         model.add(LSTM(lstm_units, kernel_regularizer=l1_l2(l1=l1_factor, l2=l2_factor)))
     model.add(Dense(num_classes, activation='softmax'))
-
     model.compile(loss="categorical_crossentropy",
                   optimizer=optimizer,
                   metrics=["accuracy"])
@@ -71,14 +68,12 @@ def model_3(embedding_dim, num_words, maxlen, num_classes, lstm_units,
             bilstm, optimizer, dropout, l1_factor, l2_factor):
     model = Sequential(name=f"baseline-dropout-regularization")
     model.add(Embedding(num_words, embedding_dim, input_length=maxlen))
-    model.add(SpatialDropout1D(dropout))
     if bilstm:
-        model.add(Bidirectional(LSTM(lstm_units, kernel_regularizer=l1_l2(l1=l1_factor, l2=l2_factor))))
+        model.add(Bidirectional(LSTM(lstm_units, dropout=dropout,
+                                     kernel_regularizer=l1_l2(l1=l1_factor, l2=l2_factor))))
     else:
-        model.add(LSTM(lstm_units, kernel_regularizer=l1_l2(l1=l1_factor, l2=l2_factor)))
-    model.add(Dropout(dropout))
+        model.add(LSTM(lstm_units, dropout=dropout, kernel_regularizer=l1_l2(l1=l1_factor, l2=l2_factor)))
     model.add(Dense(num_classes, activation='softmax'))
-
     model.compile(loss="categorical_crossentropy",
                   optimizer=optimizer,
                   metrics=["accuracy"])

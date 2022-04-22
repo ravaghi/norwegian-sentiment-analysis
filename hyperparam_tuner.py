@@ -84,9 +84,9 @@ if __name__ == "__main__":
     )
 
     # Saving results to file
-    with open(f"tuner_results.pkl", "wb") as f:
+    with open(f"tuner.pkl", "wb") as f:
         pickle.dump(tuner, f)
-    tuner = pickle.load(open("tuner_results.pkl", "rb"))
+    tuner = pickle.load(open("tuner.pkl", "rb"))
 
     # Loading the best model
     best_hps = tuner.get_best_hyperparameters(num_results=1)[0]
