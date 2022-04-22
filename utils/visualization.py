@@ -4,7 +4,7 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-def plot_history(history):
+def plot_history(history, plot_name):
     plt.style.use("ggplot")
     plt.figure(figsize=(18, 6))
     plt.subplot(1, 2, 1)
@@ -21,7 +21,10 @@ def plot_history(history):
     plt.xlabel("Epoch")
     plt.ylabel("Loss")
     plt.legend()
-    plt.show()
+
+    plt.tight_layout()
+    plot_path = os.path.join(BASE_DIR, 'plots')
+    plt.savefig(os.path.join(plot_path, f"{plot_name}.pdf"), bbox_inches='tight')
 
 
 def plot_histories(histories, plot_name):
