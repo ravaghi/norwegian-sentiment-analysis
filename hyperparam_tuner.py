@@ -1,178 +1,47 @@
 import data.norec.dataloader as dataloader
-import utils.preprocessing as preprocessing
-
-from keras.utils.np_utils import to_categorical
-from keras.preprocessing.text import Tokenizer
-from keras.preprocessing.sequence import pad_sequences
+from dataloader import load_data
 from keras.regularizers import l1_l2
 from keras.models import Sequential
 from keras.layers import Dense, LSTM, Embedding, SpatialDropout1D
 from keras.optimizers import adam_v2
 from keras.callbacks import EarlyStopping
 from keras_tuner import RandomSearch
-
-from collections import Counter
-import numpy as np
-import pandas as pd
-import math
 import os
 import pickle
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-def get_vocab_size(texts):
-    num_words = Counter()
-    for text in texts:
-        sentences = text.split(" ")
-        for word in sentences:
-            num_words[word] += 1
-
-    num_words = len(num_words) / 20
-    num_words = math.ceil(num_words / 1000) * 1000
-
-    return num_words
-
-
-def get_data(dataset):
-    train = dataset["train"]
-    val = dataset["dev"]
-
-    # Cleaning values in the text column
-    train = preprocessing.clean_text(train, "text")
-    val = preprocessing.clean_text(val, "text")
-
-    # Combining data for later use
-    combined_data = pd.concat([train, val]).reset_index(drop=True)
-
-    # Separating texts and labels
-    X_train, y_train = train["text"], train["label"]
-    X_val, y_val = val["text"], val["label"]
-
-    # Fitting a tokenizer to text from the combined data
-    num_words = get_vocab_size(combined_data["text"])
-    tokenizer = Tokenizer(num_words=num_words, oov_token="<OOV>")
-    tokenizer.fit_on_texts(combined_data["text"].tolist())
-
-    # Converting texts to sequences
-    X_train = tokenizer.texts_to_sequences(X_train)
-    X_val = tokenizer.texts_to_sequences(X_val)
-
-    # Deciding embedding vector length
-    maxlen = (int(np.ceil(np.mean([len(text.split()) for text in combined_data.text]))))
-    # Padding sequences with zeros until they reach a certain length
-    X_train = pad_sequences(X_train, maxlen=maxlen)
-    X_val = pad_sequences(X_val, maxlen=maxlen)
-
-    # Number of unique classes in the dataset
-    num_classes = len(np.unique(y_train))
-    # One-hot encoding of labels
-    y_train = to_categorical(y_train, num_classes=num_classes)
-    y_val = to_categorical(y_val, num_classes=num_classes)
-
-    return {
-        "X_train": X_train,
-        "X_val": X_val,
-        "y_train": y_train,
-        "y_val": y_val,
-        "maxlen": maxlen,
-        "num_classes": num_classes,
-        "num_words": num_words
-    }
-
-
 def build_model(hp):
-    model = Sequential()
+    hp_embedding_dim = hp.Int("embedding_dim", min_value=5, max_value=100, step=5)
+    hp_lstm_units = hp.Int("lstm_units", min_value=8, max_value=128, step=128)
+    hp_spatial_dropout = hp.Float("spatial_dropout", min_value=0.0, max_value=0.5, step=0.05)
+    hp_dropout = hp.Float("dropout", min_value=0.0, max_value=0.5, step=0.05)
+    hp_recurrent_dropout = hp.Float("dropout", min_value=0.0, max_value=0.5, step=0.05)
+    hp_l1_reg = hp.Choice("l1_regularizer", values=[0.0, 0.001, 0.005, 0.01, 0.05, 0.1])
+    hp_l2_reg = hp.Choice("l2_regularizer", values=[0.0, 0.001, 0.005, 0.01, 0.05, 0.1])
+    hp_rec_l1_reg = hp.Choice("recurrent_l1_regularizer", values=[0.0, 0.001, 0.005, 0.01, 0.05, 0.1])
+    hp_rec_l2_reg = hp.Choice("recurrent_l2_regularizer", values=[0.0, 0.001, 0.005, 0.01, 0.05, 0.1])
+    hp_learning_rate = hp.Choice("learning_rate", values=[1e-2, 5e-2, 1e-3, 5e-3, 1e-4, 5e-4])
 
-    model.add(
-        Embedding(input_dim=num_words,
-                  output_dim=hp.Int(
-                      "embedding_dim",
-                      min_value=10,
-                      max_value=100,
-                      step=10
-                  ),
-                  input_length=maxlen
-                  )
-    )
-    model.add(
-        SpatialDropout1D(
-            hp.Float(
-                "spatial_dropout",
-                min_value=0.1,
-                max_value=0.5,
-                step=0.05
-            )
-        )
-    )
-    model.add(
-        LSTM(
-            units=hp.Int(
-                "lstm_units",
-                min_value=8,
-                max_value=128,
-                step=8
-            ),
-            dropout=hp.Float(
-                "dropout",
-                min_value=0.1,
-                max_value=0.5,
-                step=0.05
-            ),
-            recurrent_dropout=hp.Float(
-                "recurrent_dropout",
-                min_value=0.1,
-                max_value=0.5,
-                step=0.05
-            ),
-            kernel_regularizer=l1_l2(
-                l1=hp.Choice(
-                    "l1_regularizer",
-                    values=[0.0, 0.001, 0.005, 0.01, 0.05, 0.1]
-                ),
-                l2=hp.Choice(
-                    "l2_regularizer",
-                    values=[0.0, 0.001, 0.005, 0.01, 0.05, 0.1]
-                )
-            ),
-            recurrent_regularizer=l1_l2(
-                l1=hp.Choice(
-                    "recurrent_l1_regularizer",
-                    values=[0.0, 0.001, 0.005, 0.01, 0.05, 0.1]
-                ),
-                l2=hp.Choice(
-                    "recurrent_l2_regularizer",
-                    values=[0.0, 0.001, 0.005, 0.01, 0.05, 0.1]
-                )
-            )
-        )
-    )
-    model.add(
-        Dense(
-            units=num_classes,
-            activation='softmax'
-        )
-    )
-    model.compile(
-        optimizer=adam_v2.Adam(
-            hp.Choice(
-                "learning_rate",
-                values=[1e-2, 5e-2, 1e-3, 5e-3, 1e-4, 5e-4]
-            )
-        ),
-        loss="categorical_crossentropy",
-        metrics=["accuracy"]
-    )
+    model = Sequential()
+    model.add(Embedding(input_dim=num_words, output_dim=hp_embedding_dim, input_length=maxlen))
+    model.add(SpatialDropout1D(rate=hp_spatial_dropout))
+    model.add(LSTM(units=hp_lstm_units, dropout=hp_dropout, recurrent_dropout=hp_recurrent_dropout,
+                   kernel_regularizer=l1_l2(l1=hp_l1_reg, l2=hp_l2_reg),
+                   recurrent_regularizer=l1_l2(l1=hp_rec_l1_reg, l2=hp_rec_l2_reg)))
+    model.add(Dense(units=num_classes, activation="softmax"))
+    model.compile(optimizer=adam_v2.Adam(hp_learning_rate), loss="categorical_crossentropy", metrics=["accuracy"])
 
     return model
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     EPOCHS = 20
     BATCH_SIZE = 128
 
     dataset = dataloader.load_full_dataset()
-    processed_data = get_data(dataset)
+    processed_data = load_data(dataset)
     X_train = processed_data["X_train"]
     X_val = processed_data["X_val"]
     y_train = processed_data["y_train"]
@@ -181,8 +50,10 @@ if __name__ == '__main__':
     num_classes = processed_data["num_classes"]
     num_words = processed_data["num_words"]
 
-    callbacks = [EarlyStopping(monitor="val_accuracy", patience=5),
-                 EarlyStopping(monitor="val_loss", patience=5)]
+    callbacks = [
+        EarlyStopping(monitor="val_accuracy", patience=5),
+        EarlyStopping(monitor="val_loss", patience=5),
+    ]
 
     tuner = RandomSearch(
         build_model,
@@ -195,12 +66,14 @@ if __name__ == '__main__':
 
     print(tuner.search_space_summary())
 
-    tuner.search(X_train,
-                 y_train,
-                 epochs=EPOCHS,
-                 batch_size=BATCH_SIZE,
-                 validation_data=(X_val, y_val),
-                 callbacks=callbacks)
+    tuner.search(
+        X_train,
+        y_train,
+        epochs=EPOCHS,
+        batch_size=BATCH_SIZE,
+        validation_data=(X_val, y_val),
+        callbacks=callbacks,
+    )
 
     with open(f"tuner_results.pkl", "wb") as f:
         pickle.dump(tuner, f)
