@@ -11,19 +11,34 @@ import math
 
 
 def get_vocab_size(texts):
+    """Returns an approximation of the number of unique words in the dataset.
+    Args:
+        texts: A list of texts
+
+    Returns: An integer representing the number of unique words in the dataset.
+
+    """
     num_words = Counter()
     for text in texts:
         sentences = text.split(" ")
         for word in sentences:
             num_words[word] += 1
 
-    num_words = len(num_words) / 20
+    # Shorten the number of the words to improve training
+    num_words = len(num_words) / 15
     num_words = math.ceil(num_words / 1000) * 1000
 
     return num_words
 
 
 def load_data(dataset):
+    """Loads the dataset.
+    Args:
+        dataset: A string representing the dataset to load.
+
+    Returns: A dictionary containing the loaded dataset and metadata.
+
+    """
     train = dataset["train"]
     val = dataset["dev"]
     test = dataset["test"]
@@ -53,6 +68,7 @@ def load_data(dataset):
 
     # Deciding embedding vector length
     maxlen = (int(np.ceil(np.mean([len(text.split()) for text in combined_data.text]))))
+
     # Padding sequences with zeros until they reach a certain length
     X_train = pad_sequences(X_train, maxlen=maxlen)
     X_val = pad_sequences(X_val, maxlen=maxlen)
@@ -60,6 +76,7 @@ def load_data(dataset):
 
     # Number of unique classes in the dataset
     num_classes = len(np.unique(y_train))
+
     # One-hot encoding of labels
     y_train = to_categorical(y_train, num_classes=num_classes)
     y_val = to_categorical(y_val, num_classes=num_classes)
