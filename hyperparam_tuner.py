@@ -1,6 +1,3 @@
-from keras.callbacks import EarlyStopping
-from keras_tuner import RandomSearch
-
 import data.norec.dataloader as dataloader
 import utils.preprocessing as preprocessing
 
@@ -11,6 +8,9 @@ from keras.regularizers import l1_l2
 from keras.models import Sequential
 from keras.layers import Dense, LSTM, Embedding, SpatialDropout1D
 from keras.optimizers import adam_v2
+from keras.callbacks import EarlyStopping
+from keras_tuner import RandomSearch
+
 from collections import Counter
 import numpy as np
 import pandas as pd
@@ -109,9 +109,9 @@ def build_model(hp):
         LSTM(
             units=hp.Int(
                 "lstm_units",
-                min_value=16,
+                min_value=8,
                 max_value=128,
-                step=16
+                step=8
             ),
             dropout=hp.Float(
                 "dropout",
@@ -155,12 +155,9 @@ def build_model(hp):
     )
     model.compile(
         optimizer=adam_v2.Adam(
-            hp.Float(
-                'learning_rate',
-                min_value=1e-4,
-                max_value=1e-2,
-                sampling='LOG',
-                default=1e-3
+            hp.Choice(
+                "learning_rate",
+                values=[1e-2, 5e-2, 1e-3, 5e-3, 1e-4, 5e-4]
             )
         ),
         loss="categorical_crossentropy",
@@ -172,7 +169,7 @@ def build_model(hp):
 
 if __name__ == '__main__':
     EPOCHS = 20
-    BATCH_SIZE = 32
+    BATCH_SIZE = 128
 
     dataset = dataloader.load_full_dataset()
     processed_data = get_data(dataset)
@@ -208,7 +205,7 @@ if __name__ == '__main__':
     with open(f"tuner_results.pkl", "wb") as f:
         pickle.dump(tuner, f)
 
-    tuner = pickle.load(open("tuner_results.pkl", "rb"))
+    """tuner = pickle.load(open("tuner_results.pkl", "rb"))
     print(tuner.get_best_hyperparameters()[0].values)
     print(tuner.results_summary())
-    print(tuner.get_best_models()[0].summary())
+    print(tuner.get_best_models()[0].summary())"""
