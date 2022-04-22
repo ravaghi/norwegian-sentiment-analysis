@@ -1,5 +1,5 @@
 import data.norec.dataloader as dataloader
-from dataloader import load_data
+from data.dataloader import load_data
 from keras.regularizers import l1_l2
 from keras.models import Sequential
 from keras.layers import Dense, LSTM, Embedding, SpatialDropout1D
