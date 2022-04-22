@@ -23,7 +23,7 @@ def plot_history(history, plot_name):
     plt.legend()
 
     plt.tight_layout()
-    plot_path = os.path.join(BASE_DIR, 'plots')
+    plot_path = os.path.join(BASE_DIR, 'training/plots')
     plt.savefig(os.path.join(plot_path, f"{plot_name}.pdf"), bbox_inches='tight')
 
 
@@ -45,5 +45,5 @@ def plot_histories(histories, plot_name):
         plt.legend()
 
     plt.tight_layout()
-    plot_path = os.path.join(BASE_DIR, 'plots')
+    plot_path = os.path.join(BASE_DIR, 'training/plots')
     plt.savefig(os.path.join(plot_path, f"{plot_name}.pdf"), bbox_inches='tight')
