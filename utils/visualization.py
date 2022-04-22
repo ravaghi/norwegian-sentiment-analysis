@@ -1,10 +1,11 @@
 import matplotlib.pyplot as plt
 import os
+from time import time
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-def plot_history(history, plot_name):
+def plot_history(history, plot_name=f"{time()}", save=True, show=False):
     plt.style.use("ggplot")
     plt.figure(figsize=(18, 6))
     plt.subplot(1, 2, 1)
@@ -22,9 +23,13 @@ def plot_history(history, plot_name):
     plt.ylabel("Loss")
     plt.legend()
 
-    plt.tight_layout()
-    plot_path = os.path.join(BASE_DIR, 'training/plots')
-    plt.savefig(os.path.join(plot_path, f"{plot_name}.pdf"), bbox_inches='tight')
+    if save:
+        plt.tight_layout()
+        plot_path = os.path.join(BASE_DIR, 'training/plots')
+        plt.savefig(os.path.join(plot_path, f"{plot_name}.pdf"), bbox_inches='tight')
+
+    if show:
+        plt.show()
 
 
 def plot_histories(histories, plot_name):
