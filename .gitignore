@@ -1,6 +1,7 @@
 .idea
 glove.4M.100d.*
 logs/
+sena_tuner/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

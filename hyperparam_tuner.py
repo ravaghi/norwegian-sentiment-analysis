@@ -61,7 +61,7 @@ if __name__ == "__main__":
         max_trials=100,
         executions_per_trial=1,
         directory=BASE_DIR,
-        project_name="sena",
+        project_name="sena_tuner",
     )
 
     print(tuner.search_space_summary())
