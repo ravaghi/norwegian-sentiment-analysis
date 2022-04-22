@@ -10,7 +10,7 @@ from keras.models import Sequential
 from keras.layers import Dense, LSTM, Embedding, SpatialDropout1D
 from keras.optimizers import adam_v2
 from keras.callbacks import EarlyStopping
-from keras_tuner import Hyperband
+from keras_tuner import Hyperband, RandomSearch
 import os
 import pickle
 import json
@@ -47,8 +47,11 @@ def build_model(hp):
 
 
 if __name__ == "__main__":
+    RANDOM = False
+    PROJECT_NAME = "random_search_hps_tuner" if RANDOM else "hyperband_hps_tuner"
+
     EPOCHS = 20
-    BATCH_SIZE = 128
+    BATCH_SIZE = 256
 
     # Loading data
     dataset = dataloader.load_full_dataset()
@@ -65,19 +68,29 @@ if __name__ == "__main__":
 
     # Early stopping
     callbacks = [
-        EarlyStopping(monitor="val_accuracy", patience=3),
-        EarlyStopping(monitor="val_loss", patience=3),
+        EarlyStopping(monitor="val_accuracy", patience=5),
+        EarlyStopping(monitor="val_loss", patience=5),
     ]
 
     # Specifying tuner
-    tuner = Hyperband(
-        build_model,
-        objective="val_accuracy",
-        max_epochs=100,
-        factor=3,
-        directory=BASE_DIR,
-        project_name="sena_tuner",
-    )
+    if RANDOM:
+        tuner = RandomSearch(
+            build_model,
+            objective="val_accuracy",
+            max_trials=1000,
+            executions_per_trial=3,
+            directory=BASE_DIR,
+            project_name=PROJECT_NAME
+        )
+    else:
+        tuner = Hyperband(
+            build_model,
+            objective="val_accuracy",
+            max_epochs=1000,
+            factor=3,
+            directory=BASE_DIR,
+            project_name=PROJECT_NAME,
+        )
 
     # Training and searching
     tuner.search(
