@@ -17,11 +17,8 @@ def build_model(hp):
     hp_lstm_units = hp.Int("lstm_units", min_value=8, max_value=128, step=128)
     hp_spatial_dropout = hp.Float("spatial_dropout", min_value=0.0, max_value=0.5, step=0.05)
     hp_dropout = hp.Float("dropout", min_value=0.0, max_value=0.5, step=0.05)
-    hp_recurrent_dropout = hp.Float("dropout", min_value=0.0, max_value=0.5, step=0.05)
     hp_l1_reg = hp.Choice("l1_regularizer", values=[0.0, 0.001, 0.005, 0.01, 0.05, 0.1])
     hp_l2_reg = hp.Choice("l2_regularizer", values=[0.0, 0.001, 0.005, 0.01, 0.05, 0.1])
-    hp_rec_l1_reg = hp.Choice("recurrent_l1_regularizer", values=[0.0, 0.001, 0.005, 0.01, 0.05, 0.1])
-    hp_rec_l2_reg = hp.Choice("recurrent_l2_regularizer", values=[0.0, 0.001, 0.005, 0.01, 0.05, 0.1])
     hp_learning_rate = hp.Choice("learning_rate", values=[1e-2, 5e-2, 1e-3, 5e-3, 1e-4, 5e-4])
 
     model = Sequential()
