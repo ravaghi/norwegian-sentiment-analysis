@@ -78,7 +78,7 @@ if __name__ == "__main__":
             build_model,
             objective="val_accuracy",
             max_trials=1000,
-            executions_per_trial=3,
+            executions_per_trial=1,
             directory=BASE_DIR,
             project_name=PROJECT_NAME
         )
