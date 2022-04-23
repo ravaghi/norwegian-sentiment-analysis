@@ -34,10 +34,10 @@ def load_best_hps():
 
 
 def baseline_model(embedding_dim, num_words, maxlen, num_classes, lstm_units,
-                   bilstm, optimizer):
+                   lstm_type, optimizer):
     model = Sequential(name="baseline")
     model.add(Embedding(num_words, embedding_dim, input_length=maxlen))
-    if bilstm:
+    if lstm_type == "bilstm":
         model.add(Bidirectional(LSTM(lstm_units)))
     else:
         model.add(LSTM(lstm_units))
@@ -50,10 +50,10 @@ def baseline_model(embedding_dim, num_words, maxlen, num_classes, lstm_units,
 
 
 def model_1(embedding_dim, num_words, maxlen, num_classes, lstm_units,
-            bilstm, optimizer, dropout):
+            lstm_type, optimizer, dropout):
     model = Sequential(name=f"baseline-dropout")
     model.add(Embedding(num_words, embedding_dim, input_length=maxlen))
-    if bilstm:
+    if lstm_type == "bilstm":
         model.add(Bidirectional(LSTM(lstm_units)))
     else:
         model.add(LSTM(lstm_units, dropout=dropout))
@@ -66,10 +66,10 @@ def model_1(embedding_dim, num_words, maxlen, num_classes, lstm_units,
 
 
 def model_2(embedding_dim, num_words, maxlen, num_classes, lstm_units,
-            bilstm, optimizer, l1_factor, l2_factor):
+            lstm_type, optimizer, l1_factor, l2_factor):
     model = Sequential(name=f"baseline-regularization")
     model.add(Embedding(num_words, embedding_dim, input_length=maxlen))
-    if bilstm:
+    if lstm_type == "bilstm":
         model.add(Bidirectional(LSTM(lstm_units, kernel_regularizer=l1_l2(l1=l1_factor, l2=l2_factor))))
     else:
         model.add(LSTM(lstm_units, kernel_regularizer=l1_l2(l1=l1_factor, l2=l2_factor)))
@@ -81,10 +81,10 @@ def model_2(embedding_dim, num_words, maxlen, num_classes, lstm_units,
 
 
 def model_3(embedding_dim, num_words, maxlen, num_classes, lstm_units,
-            bilstm, optimizer, dropout, l1_factor, l2_factor):
+            lstm_type, optimizer, dropout, l1_factor, l2_factor):
     model = Sequential(name=f"baseline-dropout-regularization")
     model.add(Embedding(num_words, embedding_dim, input_length=maxlen))
-    if bilstm:
+    if lstm_type == "bilstm":
         model.add(Bidirectional(LSTM(lstm_units, dropout=dropout,
                                      kernel_regularizer=l1_l2(l1=l1_factor, l2=l2_factor))))
     else:
@@ -100,13 +100,14 @@ if __name__ == '__main__':
     best_hps = load_best_hps()
 
     EPOCHS = 20
-    BATCH_SIZE = 32
+    BATCH_SIZE = 256
     EMBEDDING_DIM = best_hps["embedding_dim"]
     LSTM_UNITS = best_hps["lstm_units"]
     L1_FACTOR = best_hps["l1_regularizer"]
     L2_FACTOR = best_hps["l2_regularizer"]
     LEARNING_RATE = best_hps["learning_rate"]
     DROPOUT = best_hps["dropout"]
+    LSTM_TYPE = best_hps["lstm_type"]
     optimizer = adam_v2.Adam(learning_rate=LEARNING_RATE)
 
     histories = {}
@@ -124,78 +125,72 @@ if __name__ == '__main__':
         num_classes = processed_data["num_classes"]
         num_words = processed_data["num_words"]
 
-        for bilstm in [True, False]:
-            models = [
-                baseline_model(embedding_dim=EMBEDDING_DIM, num_words=num_words, maxlen=maxlen, num_classes=num_classes,
-                               bilstm=bilstm, lstm_units=LSTM_UNITS, optimizer=optimizer),
-                model_1(embedding_dim=EMBEDDING_DIM, num_words=num_words, maxlen=maxlen, num_classes=num_classes,
-                        bilstm=bilstm, lstm_units=LSTM_UNITS, optimizer=optimizer, dropout=DROPOUT),
-                model_2(embedding_dim=EMBEDDING_DIM, num_words=num_words, maxlen=maxlen, num_classes=num_classes,
-                        bilstm=bilstm, lstm_units=LSTM_UNITS, optimizer=optimizer, l1_factor=L1_FACTOR,
-                        l2_factor=L2_FACTOR),
-                model_3(embedding_dim=EMBEDDING_DIM, num_words=num_words, maxlen=maxlen, num_classes=num_classes,
-                        bilstm=bilstm, lstm_units=LSTM_UNITS, optimizer=optimizer, dropout=DROPOUT, l1_factor=L1_FACTOR,
-                        l2_factor=L2_FACTOR)
-            ]
+        models = [
+            baseline_model(embedding_dim=EMBEDDING_DIM, num_words=num_words, maxlen=maxlen, num_classes=num_classes,
+                           lstm_type=LSTM_TYPE, lstm_units=LSTM_UNITS, optimizer=optimizer),
+            model_1(embedding_dim=EMBEDDING_DIM, num_words=num_words, maxlen=maxlen, num_classes=num_classes,
+                    lstm_type=LSTM_TYPE, lstm_units=LSTM_UNITS, optimizer=optimizer, dropout=DROPOUT),
+            model_2(embedding_dim=EMBEDDING_DIM, num_words=num_words, maxlen=maxlen, num_classes=num_classes,
+                    lstm_type=LSTM_TYPE, lstm_units=LSTM_UNITS, optimizer=optimizer, l1_factor=L1_FACTOR,
+                    l2_factor=L2_FACTOR),
+            model_3(embedding_dim=EMBEDDING_DIM, num_words=num_words, maxlen=maxlen, num_classes=num_classes,
+                    lstm_type=LSTM_TYPE, lstm_units=LSTM_UNITS, optimizer=optimizer, dropout=DROPOUT,
+                    l1_factor=L1_FACTOR,
+                    l2_factor=L2_FACTOR)
+        ]
 
-            for model in models:
-                model_name = dataset_name + "-" + model.name
-                lstm_type = "bilstm" if bilstm else "lstm"
+        for model in models:
+            model_name = dataset_name + "-" + model.name
 
-                logdir = os.path.join(BASE_DIR, f"logs/{lstm_type}/{model_name}")
-                # Early stopping to prevent overtraining when the model starts to overfit
-                # And logging the history of the model to tensorboard
-                callbacks = [EarlyStopping(monitor="val_accuracy", patience=5),
-                             EarlyStopping(monitor="val_loss", patience=5),
-                             TensorBoard(log_dir=logdir)]
+            logdir = os.path.join(BASE_DIR, f"logs/{model_name}")
+            # Early stopping to prevent overtraining when the model starts to overfit
+            # And logging the history of the model to tensorboard
+            callbacks = [EarlyStopping(monitor="val_accuracy", patience=5),
+                         EarlyStopping(monitor="val_loss", patience=5),
+                         TensorBoard(log_dir=logdir)]
 
-                print(f"\n--------------- Training model: {lstm_type}-{model_name} ---------------")
-                history = model.fit(X_train, y_train,
-                                    epochs=EPOCHS,
-                                    batch_size=BATCH_SIZE,
-                                    validation_data=(X_val, y_val),
-                                    verbose=1,
-                                    callbacks=callbacks)
-                print(f"----------- Finished training model: {lstm_type}-{model_name} -----------\n")
+            print(f"\n--------------- Training model: {model_name} ---------------")
+            history = model.fit(X_train, y_train,
+                                epochs=EPOCHS,
+                                batch_size=BATCH_SIZE,
+                                validation_data=(X_val, y_val),
+                                verbose=1,
+                                callbacks=callbacks)
+            print(f"----------- Finished training model: {model_name} -----------\n")
 
-                val_loss, val_acc = model.evaluate(X_test, y_test, verbose=1)
+            val_loss, val_acc = model.evaluate(X_test, y_test, verbose=1)
 
-                model.save(os.path.join(BASE_DIR, f"models/{lstm_type}/{model_name}-{val_acc}.h5"))
+            model.save(os.path.join(BASE_DIR, f"models/{model_name}-{val_acc}.h5"))
 
-                if lstm_type in histories.keys():
-                    if dataset_name in histories[lstm_type].keys():
-                        histories[lstm_type][dataset_name][model.name] = history
-                    else:
-                        histories[lstm_type][dataset_name] = {model.name: history}
-                else:
-                    histories[lstm_type] = {dataset_name: {model.name: history}}
+            if dataset_name in histories.keys():
+                histories[dataset_name][model.name] = history
+            else:
+                histories[dataset_name] = {model.name: history}
 
-                results.append(
-                    {
-                        "dataset": dataset_name,
-                        "model": model.name,
-                        "val_loss": val_loss,
-                        "val_acc": val_acc,
-                        "lstm_type": lstm_type,
-                        "hyperparameters": {
-                            "embedding_dim": EMBEDDING_DIM,
-                            "num_words": num_words,
-                            "maxlen": maxlen,
-                            "num_classes": num_classes,
-                            "lstm_units": LSTM_UNITS,
-                            "dropout": DROPOUT,
-                            "l1_factor": L1_FACTOR,
-                            "l2_factor": L2_FACTOR,
-                            "optimizer_learning_rate": LEARNING_RATE
-                        }
+            results.append(
+                {
+                    "dataset": dataset_name,
+                    "model": model.name,
+                    "val_loss": val_loss,
+                    "val_acc": val_acc,
+                    "hyperparameters": {
+                        "embedding_dim": EMBEDDING_DIM,
+                        "num_words": num_words,
+                        "maxlen": maxlen,
+                        "num_classes": num_classes,
+                        "lstm_units": LSTM_UNITS,
+                        "dropout": DROPOUT,
+                        "l1_factor": L1_FACTOR,
+                        "l2_factor": L2_FACTOR,
+                        "optimizer_learning_rate": LEARNING_RATE
                     }
-                )
+                }
+            )
 
     # Save parameters and results to a json file
     with open(os.path.join(BASE_DIR, "models/results.json"), "w") as f:
         json.dump(results, f)
 
     # Plot histories
-    for lstm_type, lstm_histories in histories.items():
-        for dataset_name, history in histories[lstm_type].items():
-            plot_histories(history, f"{lstm_type}/{dataset_name}")
+    for dataset_name, history in histories.items():
+        plot_histories(history, f"{dataset_name}")
