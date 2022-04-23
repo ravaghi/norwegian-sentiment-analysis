@@ -34,7 +34,7 @@ def build_model(hp):
     hp_l1_reg = hp.Choice("l1_regularizer", values=[0.0, 0.001, 0.0025, 0.005, 0.0075, 0.01, 0.012, 0.015, 0.017, 0.02])
     hp_l2_reg = hp.Choice("l2_regularizer", values=[0.0, 0.001, 0.0025, 0.005, 0.0075, 0.01, 0.012, 0.015, 0.017, 0.02])
     hp_learning_rate = hp.Choice("learning_rate", values=[5e-2, 1e-3, 5e-3, 1e-4, 5e-4])
-    lstm_type = hp.Choice("model_type", ["lstm", "bilstm"])
+    lstm_type = hp.Choice("lstm_type", ["lstm", "bilstm"])
 
     # Building model
     model = Sequential()
