@@ -27,13 +27,13 @@ def build_model(hp):
     """
 
     # Defining hyperparameters
-    hp_embedding_dim = hp.Int("embedding_dim", min_value=8, max_value=128, step=8)
-    hp_lstm_units = hp.Int("lstm_units", min_value=8, max_value=128, step=128)
+    hp_embedding_dim = hp.Int("embedding_dim", min_value=16, max_value=128, step=8)
+    hp_lstm_units = hp.Int("lstm_units", min_value=16, max_value=128, step=128)
     hp_dropout = hp.Float("dropout", min_value=0.0, max_value=0.5, step=0.05)
     hp_spatial_dropout = hp.Float("spatial_dropout", min_value=0.0, max_value=0.5, step=0.05)
     hp_l1_reg = hp.Choice("l1_regularizer", values=[0.0, 0.001, 0.0025, 0.005, 0.0075, 0.01, 0.012, 0.015, 0.017, 0.02])
     hp_l2_reg = hp.Choice("l2_regularizer", values=[0.0, 0.001, 0.0025, 0.005, 0.0075, 0.01, 0.012, 0.015, 0.017, 0.02])
-    hp_learning_rate = hp.Choice("learning_rate", values=[1e-2, 5e-2, 1e-3, 5e-3, 1e-4, 5e-4])
+    hp_learning_rate = hp.Choice("learning_rate", values=[5e-2, 1e-3, 5e-3, 1e-4, 5e-4])
 
     # Building model
     model = Sequential()
@@ -47,8 +47,7 @@ def build_model(hp):
 
 
 if __name__ == "__main__":
-    RANDOM = True
-    PROJECT_NAME = "random_search_hps_tuner" if RANDOM else "hyperband_hps_tuner"
+    RANDOM = False
 
     EPOCHS = 20
     BATCH_SIZE = 256
@@ -80,7 +79,7 @@ if __name__ == "__main__":
             max_trials=1000,
             executions_per_trial=1,
             directory=BASE_DIR,
-            project_name=PROJECT_NAME
+            project_name="hps_tuner",
         )
     else:
         tuner = Hyperband(
@@ -89,7 +88,7 @@ if __name__ == "__main__":
             max_epochs=1000,
             factor=3,
             directory=BASE_DIR,
-            project_name=PROJECT_NAME,
+            project_name="hps_tuner",
         )
 
     # Training and searching
@@ -103,15 +102,15 @@ if __name__ == "__main__":
     )
 
     # Saving results to file
-    with open(f"{PROJECT_NAME}/tuner.pkl", "wb") as f:
+    with open("tuner.pkl", "wb") as f:
         pickle.dump(tuner, f)
-    tuner = pickle.load(open(f"{PROJECT_NAME}/tuner.pkl", "rb"))
+    tuner = pickle.load(open("tuner.pkl", "rb"))
 
     # Loading the best model
     best_hps = tuner.get_best_hyperparameters(1)[0]
 
     # Saving hyperparameters of the best model
-    with open(f"{PROJECT_NAME}/best_hps.json", "w") as f:
+    with open("best_hps.json", "w") as f:
         json.dump(best_hps.get_config(), f)
 
     # Loading the best model and training it on the best hyperparameters
