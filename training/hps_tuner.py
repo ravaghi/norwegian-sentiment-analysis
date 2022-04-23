@@ -7,7 +7,7 @@ from utils.visualization import plot_history
 from data.dataloader import load_data
 from keras.regularizers import l1_l2
 from keras.models import Sequential
-from keras.layers import Dense, LSTM, Embedding, SpatialDropout1D
+from keras.layers import Dense, LSTM, Embedding, SpatialDropout1D, Bidirectional
 from keras.optimizers import adam_v2
 from keras.callbacks import EarlyStopping
 from keras_tuner import Hyperband, RandomSearch
@@ -34,12 +34,20 @@ def build_model(hp):
     hp_l1_reg = hp.Choice("l1_regularizer", values=[0.0, 0.001, 0.0025, 0.005, 0.0075, 0.01, 0.012, 0.015, 0.017, 0.02])
     hp_l2_reg = hp.Choice("l2_regularizer", values=[0.0, 0.001, 0.0025, 0.005, 0.0075, 0.01, 0.012, 0.015, 0.017, 0.02])
     hp_learning_rate = hp.Choice("learning_rate", values=[5e-2, 1e-3, 5e-3, 1e-4, 5e-4])
+    lstm_type = hp.Choice("model_type", ["lstm", "bilstm"])
 
     # Building model
     model = Sequential()
     model.add(Embedding(input_dim=num_words, output_dim=hp_embedding_dim, input_length=maxlen))
     model.add(SpatialDropout1D(hp_spatial_dropout))
-    model.add(LSTM(units=hp_lstm_units, dropout=hp_dropout, kernel_regularizer=l1_l2(l1=hp_l1_reg, l2=hp_l2_reg)))
+    if lstm_type == "lstm":
+        with hp.conditional_scope("lstm_type", ["lstm"]):
+            model.add(
+                LSTM(units=hp_lstm_units, dropout=hp_dropout, kernel_regularizer=l1_l2(l1=hp_l1_reg, l2=hp_l2_reg)))
+    if lstm_type == "bilstm":
+        with hp.conditional_scope("lstm_type", ["bilstm"]):
+            model.add(Bidirectional(
+                LSTM(units=hp_lstm_units, dropout=hp_dropout, kernel_regularizer=l1_l2(l1=hp_l1_reg, l2=hp_l2_reg))))
     model.add(Dense(units=num_classes, activation="softmax"))
     model.compile(optimizer=adam_v2.Adam(hp_learning_rate), loss="categorical_crossentropy", metrics=["accuracy"])
 
