@@ -47,7 +47,7 @@ def build_model(hp):
 
 
 if __name__ == "__main__":
-    RANDOM = False
+    RANDOM = True
     PROJECT_NAME = "random_search_hps_tuner" if RANDOM else "hyperband_hps_tuner"
 
     EPOCHS = 20
