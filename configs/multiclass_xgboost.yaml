@@ -1,0 +1,13 @@
+defaults:
+  - base
+  - _self_
+
+model:
+  n_estimators: 490
+  max_depth: 4
+  learning_rate: 0.45
+  random_state: ${general.seed}
+
+vectorizer:
+  max_features: 10_000
+  min_df: 0.001

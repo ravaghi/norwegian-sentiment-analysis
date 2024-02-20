@@ -1,0 +1,21 @@
+defaults:
+  - base
+  - _self_
+
+model:
+  vocab_size: ${data.vocab_size}
+  embedding_dim: 200
+  hidden_dim: 140
+  n_layers: 6
+  seq_len: ${data.max_seq_len}
+  learning_rate: ${general.learning_rate}
+  max_epochs: ${general.max_epochs}
+
+data:
+  vocab_size: 120_000
+  max_seq_len: 350
+
+general:
+  max_epochs: 5
+  batch_size: 70
+  learning_rate: 0.004

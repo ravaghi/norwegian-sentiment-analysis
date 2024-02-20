@@ -1,0 +1,13 @@
+dataloader:
+  data_dir: ${general.project_root_dir}/data/norec/data
+  save: True
+  save_dir: ${general.project_root_dir}/.tmp
+
+wandb:
+  project: norwegian-sentiment-analysis
+  entity: ravaghi
+
+general:
+  project_root_dir: /home/username/.../norwegian-sentiment-analysis
+  log_dir: ${general.project_root_dir}/logs
+  seed: 42

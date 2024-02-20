@@ -1,0 +1,21 @@
+fastparquet==2023.10.1
+hydra-core==1.3.2
+jupyter==1.0.0
+lightning==2.1.4
+lightning-utilities==0.10.1
+matplotlib==3.8.2
+nb-core-news-lg @ https://github.com/explosion/spacy-models/releases/download/nb_core_news_lg-3.7.0/nb_core_news_lg-3.7.0-py3-none-any.whl#sha256=1fc736871e26fb47856904c817f1b101cc06322e0fe98323dd0e35ee47bfbdbb
+numpy==1.26.3
+pandas==2.2.0
+scikit-learn==1.4.0
+seaborn==0.13.2
+spacy==3.7.2
+torch==2.2.0
+torchdata==0.7.1
+torchmetrics==1.3.0.post0
+torchtext==0.17.0
+torchvision==0.17.0
+tqdm==4.66.1
+transformers==4.37.2
+wandb==0.16.2
+xgboost==2.0.3

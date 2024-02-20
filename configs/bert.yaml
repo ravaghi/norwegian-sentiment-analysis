@@ -1,0 +1,10 @@
+defaults:
+  - base
+  - _self_
+
+model:
+  max_seq_len: 512
+
+general:
+  max_epochs: 100
+  batch_size: 32
