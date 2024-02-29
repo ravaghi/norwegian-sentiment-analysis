@@ -1,5 +1,6 @@
 from lightning.pytorch import seed_everything
 from hydra import initialize, compose
+from transformers import set_seed
 from omegaconf import DictConfig
 from omegaconf import OmegaConf
 import wandb
@@ -14,6 +15,8 @@ def init_run(config_name: str, run_name: str) -> DictConfig:
         os.makedirs(config.general.log_dir)
 
     seed_everything(config.general.seed)
+    set_seed(config.general.seed)
+    
     wandb.init(
         project=config.wandb.project,
         entity=config.wandb.entity,
