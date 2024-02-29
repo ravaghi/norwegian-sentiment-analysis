@@ -1,6 +1,8 @@
 # Norwegian Sentiment Analysis
 
-This project focuses on document-level sentiment analysis of Norwegian texts, comparing five different models. The models are trained on the Norwegian Review Corpus, [NoReC](https://github.com/ltgoslo/norec), which has been made specifically for the purpose of training and evaluating models for document-level sentiment analysis.
+This project focuses on document-level sentiment analysis of Norwegian texts, comparing three different models. LSTM, XGBoost and three different sizes of the Norwegian BERT model, NorBERT3.
+
+The models are trained on the Norwegian Review Corpus, [NoReC](https://github.com/ltgoslo/norec), which has been made specifically for the purpose of training and evaluating models for document-level sentiment analysis.
 
 ## Scores
 <p align="center">
