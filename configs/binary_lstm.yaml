@@ -10,6 +10,7 @@ model:
   seq_len: ${data.max_seq_len}
   learning_rate: ${general.learning_rate}
   max_epochs: ${general.max_epochs}
+  n_classes: 2
 
 data:
   vocab_size: 10_000

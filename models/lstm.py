@@ -1,16 +1,16 @@
+from torchmetrics import Accuracy, F1Score, AUROC
 from torch import nn, optim
 import lightning as L
-import torchmetrics
 import wandb
 import torch
 
 
 class LSTM(L.LightningModule):
-    def __init__(self, vocab_size, embedding_dim, hidden_dim, n_layers, seq_len, n_class, learning_rate, max_epochs, class_weights):
+    def __init__(self, vocab_size, embedding_dim, hidden_dim, n_layers, seq_len, n_classes, learning_rate, max_epochs, class_weights):
         super().__init__()
         self.learning_rate = learning_rate
         self.max_epochs = max_epochs
-        self.n_class = n_class
+        self.n_classes = n_classes
 
         self.embedding = nn.Embedding(vocab_size, embedding_dim)
         self.lstm = nn.LSTM(
@@ -19,7 +19,7 @@ class LSTM(L.LightningModule):
             num_layers=n_layers,
             batch_first=True
         )
-        self.fc = nn.Linear(seq_len * hidden_dim, n_class)
+        self.fc = nn.Linear(seq_len * hidden_dim, n_classes)
 
         self.criterion = nn.CrossEntropyLoss(weight=class_weights)
 
@@ -29,18 +29,18 @@ class LSTM(L.LightningModule):
         self.test_step_ys = []
 
     def _log_metrics(self, type, loss, y_hat, y):
-        if self.n_class == 2:
+        if self.n_classes == 2:
             _, y_hat = torch.max(y_hat, 1)
             
-            accuracy = torchmetrics.Accuracy("binary", num_classes=2)( y_hat.detach().cpu(), y.detach().cpu())
-            f1_score = torchmetrics.F1Score("binary", num_classes=2)(y_hat.detach().cpu(), y.detach().cpu())
-            roc_auc = torchmetrics.AUROC("binary", num_classes=2)(y_hat.detach().cpu(), y.detach().cpu())
+            accuracy = Accuracy("binary", num_classes=2)( y_hat.detach().cpu(), y.detach().cpu())
+            f1_score = F1Score("binary", num_classes=2)(y_hat.detach().cpu(), y.detach().cpu())
+            roc_auc = AUROC("binary", num_classes=2)(y_hat.detach().cpu(), y.detach().cpu())
         else:
             y_hat_prob = y_hat
             _, y_hat = torch.max(y_hat, 1)
-            accuracy = torchmetrics.Accuracy("multiclass", num_classes=3)( y_hat.detach().cpu(), y.detach().cpu())
-            f1_score = torchmetrics.F1Score("multiclass", num_classes=3)( y_hat.detach().cpu(), y.detach().cpu())
-            roc_auc = torchmetrics.AUROC( "multiclass", num_classes=3)( y_hat_prob.detach().cpu(), y.detach().cpu())
+            accuracy = Accuracy("multiclass", num_classes=3)( y_hat.detach().cpu(), y.detach().cpu())
+            f1_score = F1Score("multiclass", num_classes=3)( y_hat.detach().cpu(), y.detach().cpu())
+            roc_auc = AUROC( "multiclass", num_classes=3)( y_hat_prob.detach().cpu(), y.detach().cpu())
 
         self.log_dict(
             {
@@ -94,14 +94,14 @@ class LSTM(L.LightningModule):
         y_hat_prob = torch.cat(self.test_step_y_hat_probs)
         y = torch.cat(self.test_step_ys)
 
-        if self.n_class == 2:
-            accuracy = torchmetrics.Accuracy("binary", num_classes=2)(y_hat.detach().cpu(), y.detach().cpu())
-            f1_score = torchmetrics.F1Score("binary", num_classes=2)(y_hat.detach().cpu(), y.detach().cpu())
-            roc_auc = torchmetrics.AUROC("binary", num_classes=2)(y_hat.detach().cpu(), y.detach().cpu())
+        if self.n_classes == 2:
+            accuracy = Accuracy("binary", num_classes=2)(y_hat.detach().cpu(), y.detach().cpu())
+            f1_score = F1Score("binary", num_classes=2)(y_hat.detach().cpu(), y.detach().cpu())
+            roc_auc = AUROC("binary", num_classes=2)(y_hat.detach().cpu(), y.detach().cpu())
         else:
-            accuracy = torchmetrics.Accuracy("multiclass", num_classes=3)(y_hat.detach().cpu(), y.detach().cpu())
-            f1_score = torchmetrics.F1Score("multiclass", num_classes=3)(y_hat.detach().cpu(), y.detach().cpu())
-            roc_auc = torchmetrics.AUROC("multiclass", num_classes=3)(y_hat_prob.detach().cpu(), y.detach().cpu())
+            accuracy = Accuracy("multiclass", num_classes=3)(y_hat.detach().cpu(), y.detach().cpu())
+            f1_score = F1Score("multiclass", num_classes=3)(y_hat.detach().cpu(), y.detach().cpu())
+            roc_auc = AUROC("multiclass", num_classes=3)(y_hat_prob.detach().cpu(), y.detach().cpu())
 
         wandb.run.summary["test_loss"] = avg_loss.item()
         wandb.run.summary["test_accuracy"] = accuracy
@@ -111,7 +111,7 @@ class LSTM(L.LightningModule):
         wandb.log({"confusion_matrix": wandb.plot.confusion_matrix(
             preds=y_hat.detach().cpu().numpy(),
             y_true=y.detach().cpu().numpy(),
-            class_names=["negative", "positive"] if self.n_class == 2 else ["negative", "neutral", "positive"]
+            class_names=["negative", "positive"] if self.n_classes == 2 else ["negative", "neutral", "positive"]
         )})
 
     def configure_optimizers(self):

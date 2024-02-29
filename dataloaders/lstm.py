@@ -21,7 +21,7 @@ class NoReCDataset(Dataset):
 
 
 class NoReCDataModule(L.LightningDataModule):
-    def __init__(self, train_df, val_df, test_df, batch_size):
+    def __init__(self, train_df: pd.DataFrame, val_df: pd.DataFrame, test_df: pd.DataFrame, batch_size: int):
         super().__init__()
         self.train_df = train_df
         self.val_df = val_df
@@ -35,16 +35,16 @@ class NoReCDataModule(L.LightningDataModule):
         elif stage == "test":
             self.test_dataset = NoReCDataset(self.test_df)
 
-    def get_class_weights(self):
+    def get_class_weights(self) -> torch.Tensor:
         class_weights = compute_class_weight('balanced', classes=np.unique(self.train_df['label']), y=self.train_df['label'])
         class_weights = torch.tensor(class_weights, dtype=torch.float)
         return class_weights
 
-    def train_dataloader(self):
+    def train_dataloader(self) -> DataLoader:
         return DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=True, num_workers=4)
 
-    def val_dataloader(self):
+    def val_dataloader(self) -> DataLoader:
         return DataLoader(self.val_dataset, batch_size=self.batch_size, shuffle=False, num_workers=4)
 
-    def test_dataloader(self):
+    def test_dataloader(self) -> DataLoader:
         return DataLoader(self.test_dataset, batch_size=self.batch_size, shuffle=False, num_workers=4)
