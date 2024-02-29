@@ -4,7 +4,9 @@ defaults:
 
 model:
   max_seq_len: 512
+  n_classes: 2
 
 general:
   max_epochs: 100
   batch_size: 32
+  learning_rate: 5e-5
