@@ -4,5 +4,9 @@ This project focuses on document-level sentiment analysis of Norwegian texts, co
 
 ## Scores
 
+<p align="center">
+  <img width="100%" src="https://github.com/ravaghi/norwegian-sentiment-analysis/assets/44374191/47934d7c-6788-49d7-b9a9-d540a17d2dc6">
+</p>
+
 
 ## Confusion matrices
