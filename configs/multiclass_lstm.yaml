@@ -17,6 +17,6 @@ data:
   max_seq_len: 350
 
 general:
-  max_epochs: 5
+  max_epochs: 100
   batch_size: 70
   learning_rate: 0.004
